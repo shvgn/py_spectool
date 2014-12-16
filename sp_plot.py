@@ -21,7 +21,14 @@ for arg in sys.argv[1:]:
     data.append(sp.spectrum_from_file(arg))
 
 pl.figure()
+
+# TODO Make both nm and eV scales in one axes or two subplots or choose this as an option
+# TODO Improve curves colors (e.g. gradients to guide the eye)
+legend = []
 for spdata in data:
     pl.plot(spdata.x, spdata.y)
+    legend.append(os.path.basename(spdata.headers['filepath']))
+pl.grid()
+pl.legend(legend)
 pl.show()
 
