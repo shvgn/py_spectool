@@ -3,15 +3,9 @@
 # import argparse
 import sys
 import os
+
 import spectrum as sp
 
-# TODO
-# We have two options here for X which are nanometers or electron-volts. Thus
-# the division must be independent from X units. The first file is a
-# divider data. Others are divided by it.
-
-EVNM_CONST = 1239.84193
-EVNM_BORDER = 100
 
 newfmt = "%s__sub__%s"
 
