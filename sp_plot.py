@@ -3,9 +3,7 @@
 # import argparse
 import sys
 import os
-
 import matplotlib.pyplot as pl
-
 import spectrum as sp
 
 
