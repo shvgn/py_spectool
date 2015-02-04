@@ -5,12 +5,12 @@ from scipy import interpolate
 
 __author__ = 'Evgenii Shevchenko'
 __email__ = 'shevchenko@beam.ioffe.ru'
-__date__ = '2014-12-15'
+__date__ = '2015-02-04'
 
 
 EVNM_CONST = 1239.84193
 EVNM_BORDER = 100
-
+SPLINE_ORDER = 5
 
 def convert_nmev(x_array):
     """
@@ -51,6 +51,7 @@ def spectrum_from_file(filepath):
         if line.strip() == '':
             continue
         try:
+            line = line.replace(",", ".")
             xy = line.split()
             x = np.append(x, float(xy[0]))
             y = np.append(y, float(xy[1]))
@@ -130,11 +131,10 @@ class Spectrum(object):
         x_min = np.maximum(np.min(self.x), np.min(other.x))
         x_max = np.minimum(np.max(self.x), np.max(other.x))
 
-        if x_max <= x_min:
+        if x_max < x_min:
             raise ValueError("X ranges do not overlap")
 
-        # NOTE this magic number specifies order of splines
-        f = interpolate.interp1d(other.x, other.y, 5)
+        f = interpolate.interp1d(other.x, other.y, SPLINE_ORDER)
 
         x_new = np.array([], dtype=float)
         y_new = np.array([], dtype=float)
