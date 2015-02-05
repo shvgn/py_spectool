@@ -21,6 +21,22 @@ def convert_nmev(x_array):
     """
     return np.array([EVNM_CONST / x for x in x_array])
 
+def point_deriv(xary, yary, index):
+    """
+    """
+    if len(xary) != len(yary):
+        raise ValueError("X and Y must have the same length")
+
+    length = len(xary)
+    if index <= 0 or index >= length: 
+        raise ValueError("Index must be between zero and len-2")
+    # Left derivative
+    dl = (yary[index] - yary[index-1]) / (xary[index] - xary[index-1])
+    # Rigth derivative
+    dr = (yary[index+1] - yary[index]) / (xary[index+1] - xary[index])
+    # Mean
+    return 0.5 * (dl + dr)
+
 
 def get_ref_data(file_or_number):
     import os
@@ -158,3 +174,22 @@ class Spectrum(object):
                              in zip(self.x, self.y))
         return header_txt + "\n\n" + data_txt
 
+    def y_shift(self):
+        """
+        Naively calculate horizontal shift of y from zero by estimating maximum of the
+        points distribution, the y's being rounded and casted to int's.
+        """
+        counts = dict()
+        # Populate statisctics
+        for el in self.y:
+            el = int(round(el))
+            if counts.get(el, None) is None:
+                counts[el] = 1
+            else:
+                counts[el] += 1
+        
+        # cnt_max = 0
+        # for el in sorted(counts.keys()):
+        #     counts[el]
+        y_shift = max(counts, key = lambda x: counts[x])
+        return y_shift

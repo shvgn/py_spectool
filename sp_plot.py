@@ -3,7 +3,9 @@
 # import argparse
 import sys
 import os
+
 import matplotlib.pyplot as pl
+
 import spectrum as sp
 
 
@@ -19,9 +21,9 @@ for arg in sys.argv[1:]:
     data.append(sp.spectrum_from_file(arg))
 
 pl.figure()
-
-# TODO Make both nm and eV scales in one axes or two subplots or choose this as an option
-# TODO Improve curves colors (e.g. gradients to guide the eye)
+# TODO show grid
+# TODO generate legend
+# TODO make both nm and eV scales in one axes or two subplots
 legend = []
 for spdata in data:
     pl.plot(spdata.x, spdata.y)

@@ -10,7 +10,7 @@ import spectrum as sp
 newfmt = "%s__sub__%s"
 
 if len(sys.argv) == 1:
-    print("usage: {0} subtract_file file datafile1 [datafile2 ...]".format(os.path.basename(sys.argv[0])))
+    print("usage: {0} subtract_file datafile1 [datafile2 ...]".format(os.path.basename(sys.argv[0])))
     sys.exit(0)
 
 refdata = sp.get_ref_data(sys.argv[1])
