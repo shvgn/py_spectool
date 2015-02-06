@@ -1,7 +1,5 @@
 import numpy as np
 from scipy import interpolate
-# Plot!
-# import matplotlib.pyplot as plt
 
 __author__ = 'Evgenii Shevchenko'
 __email__ = 'shevchenko@beam.ioffe.ru'
@@ -12,6 +10,7 @@ EVNM_CONST = 1239.84193
 EVNM_BORDER = 100
 SPLINE_ORDER = 5
 
+
 def convert_nmev(x_array):
     """
     Convert array of nanometers to electron-volts and in reverse
@@ -21,6 +20,7 @@ def convert_nmev(x_array):
     """
     return np.array([EVNM_CONST / x for x in x_array])
 
+
 def point_deriv(xary, yary, index):
     """
     """
@@ -28,12 +28,12 @@ def point_deriv(xary, yary, index):
         raise ValueError("X and Y must have the same length")
 
     length = len(xary)
-    if index <= 0 or index >= length: 
+    if index <= 0 or index >= length:
         raise ValueError("Index must be between zero and len-2")
     # Left derivative
-    dl = (yary[index] - yary[index-1]) / (xary[index] - xary[index-1])
+    dl = (yary[index] - yary[index - 1]) / (xary[index] - xary[index - 1])
     # Rigth derivative
-    dr = (yary[index+1] - yary[index]) / (xary[index+1] - xary[index])
+    dr = (yary[index + 1] - yary[index]) / (xary[index + 1] - xary[index])
     # Mean
     return 0.5 * (dl + dr)
 
@@ -137,7 +137,8 @@ class Spectrum(object):
                 headers_new[op_header] += ", " + str(other)
             else:
                 headers_new[op_header] = str(other)  # A number is here
-            return Spectrum(self.x, getattr(self.y, method)(other), headers_new)
+            return Spectrum(self.x,
+                            getattr(self.y, method)(other), headers_new)
 
         # Make the operation
         # If the second operand is not a number it must be a Spectrum instance
@@ -157,7 +158,8 @@ class Spectrum(object):
         for i in range(len(self.x)):
             if x_min <= self.x[i] <= x_max:
                 x_new = np.append(x_new, self.x[i])
-                y_new = np.append(y_new, getattr(self.y[i], method)(f(self.x[i])))
+                y_new = np.append(
+                    y_new, getattr(self.y[i], method)(f(self.x[i])))
 
         if 'filepath' in other.headers:
             headers_new[op_header] = other.headers['filepath']
@@ -187,9 +189,19 @@ class Spectrum(object):
                 counts[el] = 1
             else:
                 counts[el] += 1
-        
+
         # cnt_max = 0
         # for el in sorted(counts.keys()):
         #     counts[el]
-        y_shift = max(counts, key = lambda x: counts[x])
+        y_shift = max(counts, key=lambda x: counts[x])
         return y_shift
+
+    def area(self):
+        """
+        Calculate area under the spectrum
+        """
+        s = 0
+        for i in range(len(self.x) - 1):
+            s += 0.5 * (self.y[i] + self.y[i + 1]) * \
+                (self.x[i + 1] - self.x[i])
+        return s
