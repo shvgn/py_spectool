@@ -10,7 +10,8 @@ import spectrum as sp
 newfmt = "%s__sub__%s"
 
 if len(sys.argv) == 1:
-    print("usage: {0} datafile1 [datafile2 ...]".format(os.path.basename(sys.argv[0])))
+    print("usage: {0} datafile1 [datafile2 ...]".format(
+        os.path.basename(sys.argv[0])))
     sys.exit(0)
 
 data = []
@@ -25,7 +26,7 @@ for spdata in data:
     pl.figure()
     legend = []
     ynoise = spdata.y_shift()
-    pl.plot([spdata.x[0], spdata.x[len(spdata.x)-1]], [ynoise, ynoise])
+    pl.plot([spdata.x[0], spdata.x[len(spdata.x) - 1]], [ynoise, ynoise])
     legend.append("Y shift = " + str(ynoise))
     pl.plot(spdata.x, spdata.y)
     legend.append(os.path.basename(spdata.headers['filepath']))

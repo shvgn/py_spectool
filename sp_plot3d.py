@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 
+#!/usr/bin/env python3
 
 import sys
 import os
@@ -13,7 +13,8 @@ import numpy as np
 
 # Collect data from files
 if len(sys.argv) == 1:
-    print("usage: {0} datafile1 [datafile2 ...]".format(os.path.basename(sys.argv[0])))
+    print("usage: {0} datafile1 [datafile2 ...]".format(
+        os.path.basename(sys.argv[0])))
     sys.exit(0)
 
 data = []
@@ -26,11 +27,12 @@ for arg in sys.argv[1:]:
 zs = []
 verts = []
 counter = 1
-for spctr in data:              
+for spctr in data:
     fname = spctr.headers['filepath']
     try:
         print(fname)
-        radius = re.search('R(\d+(\.\d+)?)', os.path.basename(fname)).groups()[0]
+        radius = re.search(
+            'R(\d+(\.\d+)?)', os.path.basename(fname)).groups()[0]
         # print(float(re.findall('_R\d\d_', fname)[0].replace('_','').replace('R','')))
         # zs.append(float(re.findall('_R\d\d_', fname)[0].replace('_','').replace('R','')))
         print(radius)
@@ -42,7 +44,7 @@ for spctr in data:
     verts.append(list(zip(spctr.x, spctr.y)))
 
 cc = lambda arg: colorConverter.to_rgba(arg, alpha=0.3)
-poly = PolyCollection(verts, facecolors = [cc('r'), cc('g'), cc('b'), cc('y')])
+poly = PolyCollection(verts, facecolors=[cc('r'), cc('g'), cc('b'), cc('y')])
 poly.set_alpha(0.7)
 
 fig = plt.figure()
@@ -59,7 +61,6 @@ ax.set_zlabel('Radius, nm')
 plt.show()
 
 
-
 # xs = np.arange(0, 10, 0.4)
 # verts = []
 # zs = [0.0, 1.0, 2.0, 3.0]
@@ -67,21 +68,20 @@ plt.show()
 #     ys = np.random.rand(len(xs))
 #     ys[0], ys[-1] = 0, 0
 #     verts.append(list(zip(xs, ys)))
-# 
+#
 # poly = PolyCollection(verts, facecolors = [cc('r'), cc('g'), cc('b'),
 #                                            cc('y')])
 # poly.set_alpha(0.7)
 # ax.add_collection3d(poly, zs=zs, zdir='y')
-# 
+#
 # ax.set_xlabel('X')
 # ax.set_xlim3d(0, 10)
 # ax.set_ylabel('Y')
 # ax.set_ylim3d(-1, 4)
 # ax.set_zlabel('Z')
 # ax.set_zlim3d(0, 1)
-# 
+#
 # plt.show()
-
 
 
 # TODO Make both nm and eV scales in one axes or two subplots or choose this as an option
@@ -93,6 +93,4 @@ plt.show()
 # pl.grid()
 # pl.legend(legend)
 # pl.show()
-# 
-
-
+#

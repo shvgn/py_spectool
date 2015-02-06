@@ -9,7 +9,8 @@ import spectrum as sp
 
 
 if len(sys.argv) == 1:
-    print("usage: {0} window_size poly_order datafile".format(os.path.basename(sys.argv[0])))
+    print("usage: {0} window_size poly_order datafile".format(
+        os.path.basename(sys.argv[0])))
     sys.exit(0)
 
 
@@ -33,4 +34,3 @@ legend.append(os.path.basename(spec.headers['filepath']))
 pl.grid()
 pl.legend(legend)
 pl.show()
-

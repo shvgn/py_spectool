@@ -7,14 +7,13 @@ import os
 import spectrum as sp
 
 
-
-
-## OPERATION SPECIFIC PLACE 1
+# OPERATION SPECIFIC PLACE 1
 newfmt = "%s__div__%s"
 
 if len(sys.argv) == 1:
-    ## OPERATION SPECIFIC PLACE 2
-    print("usage: {0} divider_file datafile1 [datafile2 ...]".format(os.path.basename(sys.argv[0])))
+    # OPERATION SPECIFIC PLACE 2
+    print("usage: {0} divider_file datafile1 [datafile2 ...]".format(
+        os.path.basename(sys.argv[0])))
     sys.exit(0)
 
 refdata = sp.get_ref_data(sys.argv[1])
@@ -32,7 +31,7 @@ else:
     ref_fname = str(refdata)
 
 for spdata in data:
-    ## OPERATION SPECIFIC PLACE 3
+    # OPERATION SPECIFIC PLACE 3
     new_spec = spdata / refdata
     fname = os.path.basename(spdata.headers['filepath'])
     fdir = os.path.dirname(spdata.headers['filepath'])

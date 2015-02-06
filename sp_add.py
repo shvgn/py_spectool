@@ -7,7 +7,6 @@ import os
 import spectrum as sp
 
 
-
 # TODO
 # We have two options here for X which are nanometers or electron-volts. Thus
 # the operation must be independent from X units.
@@ -15,7 +14,8 @@ import spectrum as sp
 newfmt = "%s__add__%s"
 
 if len(sys.argv) == 1:
-    print("usage: {0} adder_file datafile1 [datafile2 ...]".format(os.path.basename(sys.argv[0])))
+    print("usage: {0} adder_file datafile1 [datafile2 ...]".format(
+        os.path.basename(sys.argv[0])))
     sys.exit(0)
 
 refdata = sp.get_ref_data(sys.argv[1])

@@ -10,7 +10,8 @@ import spectrum as sp
 
 
 if len(sys.argv) == 1:
-    print("usage: {0} datafile1 [datafile2 ...]".format(os.path.basename(sys.argv[0])))
+    print("usage: {0} datafile1 [datafile2 ...]".format(
+        os.path.basename(sys.argv[0])))
     sys.exit(0)
 
 data = []
@@ -31,4 +32,3 @@ for spdata in data:
 pl.grid()
 pl.legend(legend)
 pl.show()
-

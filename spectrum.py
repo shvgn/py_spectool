@@ -5,12 +5,13 @@ from scipy import interpolate
 
 __author__ = 'Evgenii Shevchenko'
 __email__ = 'shevchenko@beam.ioffe.ru'
-__date__ = '2015-02-04'
+__date__ = '2015-06-04'
 
 
 EVNM_CONST = 1239.84193
 EVNM_BORDER = 100
-SPLINE_ORDER = 5
+SPLINE_ORDER = 5 # Sure this must be a paramenter not a global 
+
 
 def convert_nmev(x_array):
     """
@@ -21,24 +22,49 @@ def convert_nmev(x_array):
     """
     return np.array([EVNM_CONST / x for x in x_array])
 
+
 def point_deriv(xary, yary, index):
     """
+    point_deriv(xary, yary, index)
+
+    The derivative of a chosen point (x(i), y(i)) at specified index 
+    in passed arrays xary and yary
     """
     if len(xary) != len(yary):
         raise ValueError("X and Y must have the same length")
 
     length = len(xary)
-    if index <= 0 or index >= length: 
+    if index <= 0 or index >= length:
         raise ValueError("Index must be between zero and len-2")
     # Left derivative
-    dl = (yary[index] - yary[index-1]) / (xary[index] - xary[index-1])
+    dl = (yary[index] - yary[index - 1]) / (xary[index] - xary[index - 1])
     # Rigth derivative
-    dr = (yary[index+1] - yary[index]) / (xary[index+1] - xary[index])
+    dr = (yary[index + 1] - yary[index]) / (xary[index + 1] - xary[index])
     # Mean
     return 0.5 * (dl + dr)
 
 
+def ary_deriv(xary, yary):
+    """
+    ary_deriv(xary, yary)
+
+    Numeric derivative of y array over x array
+    Return dy and dx with length-2 related to the input arrays
+    """
+    dx = np.array(xary[1:len(xary) - 1])
+    dy = ap.array([point_deriv(xary, yary, i)
+                   for i in range(1, len(xary) - 1)])
+    return dx, dy
+
+
 def get_ref_data(file_or_number):
+    """
+    get_ref_data(file_or_number)
+
+    Get reference data for a calculation via detecting whether the input is
+    a number or a file path. Returns either float or Spectrum instance with
+    the content of the file.
+    """
     import os
     # if not (os.path.exists(file_or_number) and os.path.isfile(file_or_number)):
     #     sys.exit("First argument: file not found or it's not a file")
@@ -109,9 +135,9 @@ class Spectrum(object):
 
     def __arithmetic(self, other, method):
         """
-        Arithmetic operation of the spectrum with a reference spectrum, the last being
-        interpolated with 5-degree spline. See numpy.interpolation.interp1d for
-        interpolation types.
+        Arithmetic operation of the spectrum with a reference spectrum, 
+        the last being interpolated with 5-degree spline. 
+        See numpy.interpolation.interp1d for interpolation types.
 
         Supported operators are
         +   __add__     addition
@@ -137,7 +163,8 @@ class Spectrum(object):
                 headers_new[op_header] += ", " + str(other)
             else:
                 headers_new[op_header] = str(other)  # A number is here
-            return Spectrum(self.x, getattr(self.y, method)(other), headers_new)
+            return Spectrum(self.x,
+                            getattr(self.y, method)(other), headers_new)
 
         # Make the operation
         # If the second operand is not a number it must be a Spectrum instance
@@ -157,7 +184,8 @@ class Spectrum(object):
         for i in range(len(self.x)):
             if x_min <= self.x[i] <= x_max:
                 x_new = np.append(x_new, self.x[i])
-                y_new = np.append(y_new, getattr(self.y[i], method)(f(self.x[i])))
+                y_new = np.append(
+                    y_new, getattr(self.y[i], method)(f(self.x[i])))
 
         if 'filepath' in other.headers:
             headers_new[op_header] = other.headers['filepath']
@@ -187,9 +215,9 @@ class Spectrum(object):
                 counts[el] = 1
             else:
                 counts[el] += 1
-        
+
         # cnt_max = 0
         # for el in sorted(counts.keys()):
         #     counts[el]
-        y_shift = max(counts, key = lambda x: counts[x])
+        y_shift = max(counts, key=lambda x: counts[x])
         return y_shift

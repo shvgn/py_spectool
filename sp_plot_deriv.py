@@ -9,7 +9,8 @@ import numpy as np
 
 
 if len(sys.argv) == 1:
-    print("usage: {0} datafile1 [datafile2 ...]".format(os.path.basename(sys.argv[0])))
+    print("usage: {0} datafile1 [datafile2 ...]".format(
+        os.path.basename(sys.argv[0])))
     sys.exit(0)
 
 data = []
@@ -27,19 +28,22 @@ legend = []
 legendd = []
 legenddd = []
 for spdata in data:
-	pl.subplot(311)
-	pl.plot(spdata.x, spdata.y )
-	legend.append(os.path.basename(spdata.headers['filepath']))
+    pl.subplot(311)
+    pl.plot(spdata.x, spdata.y)
+    legend.append(os.path.basename(spdata.headers['filepath']))
 
-	pl.subplot(312)
-	dy = [sp.point_deriv(spdata.x, spdata.y, i) for i in range(1,len(spdata.y)-1)]
-	pl.plot(spdata.x[1:len(spdata.x)-1], np.abs(dy))
-	legendd.append(os.path.basename(spdata.headers['filepath']))
-	
-	pl.subplot(313)
-	ddy = [sp.point_deriv(spdata.x[1:len(spdata.x)-1], dy, i) for i in range(1,len(dy)-1)]
-	pl.plot(spdata.x[2:len(spdata.x)-2], np.abs(ddy))
-	legenddd.append(os.path.basename(spdata.headers['filepath']))
+    pl.subplot(312)
+    # dx, dy = sp.ary_deriv(spdata.x, spdata.y) # Better way
+    dy = [sp.point_deriv(spdata.x, spdata.y, i)
+          for i in range(1, len(spdata.y) - 1)]
+    pl.plot(spdata.x[1:len(spdata.x) - 1], np.abs(dy))
+    legendd.append(os.path.basename(spdata.headers['filepath']))
+
+    pl.subplot(313)
+    ddy = [sp.point_deriv(spdata.x[1:len(spdata.x) - 1], dy, i)
+           for i in range(1, len(dy) - 1)]
+    pl.plot(spdata.x[2:len(spdata.x) - 2], np.abs(ddy))
+    legenddd.append(os.path.basename(spdata.headers['filepath']))
 
 pl.subplot(311)
 pl.grid()
@@ -54,4 +58,3 @@ pl.grid()
 pl.legend(legenddd)
 
 pl.show()
-
