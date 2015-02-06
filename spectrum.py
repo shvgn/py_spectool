@@ -1,7 +1,5 @@
 import numpy as np
 from scipy import interpolate
-# Plot!
-# import matplotlib.pyplot as plt
 
 __author__ = 'Evgenii Shevchenko'
 __email__ = 'shevchenko@beam.ioffe.ru'
@@ -11,6 +9,7 @@ __date__ = '2015-06-04'
 EVNM_CONST = 1239.84193
 EVNM_BORDER = 100
 SPLINE_ORDER = 5 # Sure this must be a paramenter not a global 
+
 
 
 def convert_nmev(x_array):
@@ -221,3 +220,13 @@ class Spectrum(object):
         #     counts[el]
         y_shift = max(counts, key=lambda x: counts[x])
         return y_shift
+
+    def area(self):
+        """
+        Calculate area under the spectrum
+        """
+        s = 0
+        for i in range(len(self.x) - 1):
+            s += 0.5 * (self.y[i] + self.y[i + 1]) * \
+                (self.x[i + 1] - self.x[i])
+        return s
