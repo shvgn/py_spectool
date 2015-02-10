@@ -92,8 +92,8 @@ def spectrum_from_file(filepath):
         if line.strip() == '':
             continue
         try:
-            line = line.replace(",", ".")
-            xy = line.split()
+            xy = line.replace(",", ".")
+            xy = xy.split()
             x = np.append(x, float(xy[0]))
             y = np.append(y, float(xy[1]))
         except ValueError:
@@ -104,6 +104,7 @@ def spectrum_from_file(filepath):
                 if len(info) == 2:
                     headers[info[0]] = info[1]
                     break
+    headers = {'filepath': filepath}
     return Spectrum(x, y, headers)
 
 

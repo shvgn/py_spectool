@@ -17,4 +17,4 @@ for arg in sys.argv[1:]:
     data.append(sp.spectrum_from_file(arg))
 
 for spdata in data:
-    print(spdata.y_shift(), "\t", spdata.headers['filepath'])
+    print(str(spdata.y_shift()).rjust(6), "  ", spdata.headers['filepath'])
