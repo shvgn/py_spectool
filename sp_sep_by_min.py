@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 
+__author__ = 'Evgenii Shevchenko'
+__email__ = 'shevchenko@beam.ioffe.ru'
+__date__ = '2015-02-11'
+
 import sys
 import os
-import spectrum as sp
+
 import numpy as np
+
+import spectrum as sp
+
+
 
 #
 DIVIDER = 4

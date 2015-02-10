@@ -3,13 +3,11 @@ from scipy import interpolate
 
 __author__ = 'Evgenii Shevchenko'
 __email__ = 'shevchenko@beam.ioffe.ru'
-__date__ = '2015-06-04'
-
+__date__ = '2015-02-11'
 
 EVNM_CONST = 1239.84193
 EVNM_BORDER = 100
-SPLINE_ORDER = 5 # Sure this must be a paramenter not a global 
-
+SPLINE_ORDER = 5  # Sure this must be a paramenter not a global
 
 
 def convert_nmev(x_array):
@@ -66,7 +64,7 @@ def get_ref_data(file_or_number):
     """
     import os
     # if not (os.path.exists(file_or_number) and os.path.isfile(file_or_number)):
-    #     sys.exit("First argument: file not found or it's not a file")
+    # sys.exit("First argument: file not found or it's not a file")
     # refdata = spectrum_from_file(file_or_number)
 
     if os.path.exists(file_or_number) and os.path.isfile(file_or_number):
@@ -117,8 +115,11 @@ class Spectrum(object):
                     '__truediv__': 'divided_by'}
 
     def __init__(self, x, y, headers=None):
-        self.x = np.array(x, dtype=float)  # Ensure numpy arrays of floats
-        self.y = np.array(y, dtype=float)
+        if len(x) != len(y):
+            raise ValueError("X and Y must be of the same length")
+        self.x, self.y = zip(*sorted(list(zip(x, y))))
+        self.x = np.array(self.x, dtype=float)
+        self.y = np.array(self.y, dtype=float)
         self.headers = headers
 
     def __add__(self, other):
@@ -202,6 +203,9 @@ class Spectrum(object):
                              in zip(self.x, self.y))
         return header_txt + "\n\n" + data_txt
 
+    def __len__(self):
+        return len(self.x)
+
     def y_shift(self):
         """
         Naively calculate horizontal shift of y from zero by estimating maximum of the
@@ -218,7 +222,7 @@ class Spectrum(object):
 
         # cnt_max = 0
         # for el in sorted(counts.keys()):
-        #     counts[el]
+        # counts[el]
         y_shift = max(counts, key=lambda x: counts[x])
         return y_shift
 
@@ -229,5 +233,5 @@ class Spectrum(object):
         s = 0
         for i in range(len(self.x) - 1):
             s += 0.5 * (self.y[i] + self.y[i + 1]) * \
-                (self.x[i + 1] - self.x[i])
+                 (self.x[i + 1] - self.x[i])
         return s
