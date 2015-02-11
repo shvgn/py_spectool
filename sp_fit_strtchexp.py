@@ -19,20 +19,21 @@ import spectrum as sp
 TIME_PERIOD = 13.158  # nanoseconds
 ITERATIONS_NUMBER = 300
 INDEX_LENGTH_AFTER_MAX = 10
-INDEX_OF_GOOD_CURVE_START = 200
+INDEX_OF_GOOD_CURVE_START = 250
 
 
 def strexp(t, ampl, tau, beta):
     """
-    Stretched exponenti
-    y  =  strexp(t, ampl, tau, beta)  =  ampl * np.exp(-t / tau) ** beta
+    Stretched exponent
+    strexp(t, ampl, tau, beta)
+    y  =  ampl * np.exp(-t / tau) ** beta
     """
     return ampl * np.exp(-t / tau) ** beta
 
 
 def strexp_loop(t, t_period, num, y0, ampl, tau, beta):
     """
-    Looped stretched exponenti
+    Looped stretched exponent
     """
     s = y0
     for i in range(num):
@@ -60,10 +61,9 @@ for arg in sys.argv[1:]:
 pl.figure()
 legend = []
 
-
-# Initial parameters = [y0, ampl, tau, beta]
-tau = 15.0
-beta = 0.3
+print("Filename\t\ty0\t\tampl\t\ttau\t\tbeta")
+tau = 15
+beta = 1
 
 for spec in data:
     # Initial parameters
@@ -91,19 +91,19 @@ for spec in data:
     # xfit = spec.x[maxpos:]
     # yfit = spec.y[maxpos:]
 
-    print("Processing file", spec.headers['filepath'])
+    # print("Processing file", spec.headers['filepath'])
     try:
         params, _ = curve_fit(
             strexp_loop_func(TIME_PERIOD, ITERATIONS_NUMBER),
             xfit, yfit, initial_params)
     except RuntimeError:
-        print("Couldn't find optimal parameters.")
+        # print("Couldn't find optimal parameters.")
+        print(spec.headers['filepath'], "\t-\t-\t-\t-")
         continue
 
     # Parameters are in order [y0, ampl, tau, beta]
-    fmt = " [y0 = %d\tampl = %d\ttau = %.3f\tbeta = %.3f]"
-    # print("  Initial params " + fmt % tuple(initial_params))
-    print("  Fitted params  " + fmt % tuple(params))
+    fmt = "\t%f\t%f\t%f\t%f"
+    print(spec.headers['filepath'], fmt % tuple(params))
 
     # Fitted sum of stretched exponents
     pl.semilogy(xfit, strexp_loop(xfit, TIME_PERIOD, ITERATIONS_NUMBER,
