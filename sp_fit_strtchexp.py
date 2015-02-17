@@ -26,9 +26,9 @@ def strexp(t, ampl, tau, beta):
     """
     Stretched exponent
     strexp(t, ampl, tau, beta)
-    y  =  ampl * np.exp(-t / tau) ** beta
+    y  =  ampl * np.exp((-t / tau) ** beta)
     """
-    return ampl * np.exp(-t / tau) ** beta
+    return ampl * np.exp((-t / tau) ** beta)
 
 
 def strexp_loop(t, t_period, num, y0, ampl, tau, beta):
@@ -106,8 +106,7 @@ for spec in data:
     print(spec.headers['filepath'], fmt % tuple(params))
 
     # Fitted sum of stretched exponents
-    pl.semilogy(xfit, strexp_loop(xfit, TIME_PERIOD, ITERATIONS_NUMBER,
-                                  *params))
+    pl.semilogy(xfit, strexp_loop(xfit, TIME_PERIOD, ITERATIONS_NUMBER, *params))
     legend.append("Fitting %d + %d exp(-t/%.2f)^%.2f" % tuple(params))
 
     # Single stretched exponent
