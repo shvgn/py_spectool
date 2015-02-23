@@ -204,12 +204,22 @@ class Spectrum(object):
         return header_txt + "\n\n" + data_txt
 
     def __len__(self):
-        return len(self.x)
+        """
+        Number of the data points (x,y), Technically it is length of X and Y.
+        If len(self.x) and len(self.y) is not he same ValeError raises.
+        """
+        if len(self.x) == len(self.y):
+            return len(self.x)
+        raise ValueError("X and Y are not of the same length")
 
     def y_shift(self):
         """
-        Naively calculate horizontal shift of y from zero by estimating maximum of the
-        points distribution, the y's being rounded and casted to int's.
+        Naively calculate horizontal shift of y from zero by estimating maximum
+        of the points distribution, the y's being rounded and casted to
+        integers. This method might be useful for estimation of a spectrum
+        noise level in case its amplitude is much higher than 1 so the rounding
+        will not affect the accuracy dramatically. The noise (dark Y) signal is
+        assumed to be constant and to take the majority of the signal length (X)
         """
         counts = dict()
         # Populate statisctics

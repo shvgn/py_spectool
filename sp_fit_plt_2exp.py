@@ -38,13 +38,15 @@ def coreexp2(t0, p, t):
     Double exponential thermal PL quenching
     p = [c1, c2, e1, e2]
     I = corefunc(t0, p, t) =
-      =  (1 + c1 * np.exp(-e1 / (CONST_BOLZMANN * (t - t0))) + c2 * np.exp(-e2 / (CONST_BOLZMANN * (t - t0)))) ** -1
+      =  (1 + c1 * np.exp(-e1 / (CONST_BOLZMANN * (t - t0))) +
+                        c2 * np.exp(-e2 / (CONST_BOLZMANN * (t - t0)))) ** -1
     """
     c1 = p[0]
     c2 = p[1]
     e1 = p[2]
     e2 = p[3]
-    return (1 + c1 * np.exp(-e1 / (CONST_BOLZMANN * (t - t0))) + c2 * np.exp(-e2 / (CONST_BOLZMANN * (t - t0)))) ** -1
+    return (1 + c1 * np.exp(-e1 / (CONST_BOLZMANN * (t - t0))) + c2 * np.exp(
+        -e2 / (CONST_BOLZMANN * (t - t0)))) ** -1
 
 
 def fitfunc(t0, func):
@@ -78,7 +80,7 @@ for spec in data:
 
     maxidx = np.argmax(spec.y)
     spec = spec / np.max(spec.y)  # Normalize by Y maximum
-    if maxidx < 15:
+    if maxidx < 15:  # XXX Beware magic number
         maxidx = 15
         spec = spec / spec.y[maxidx]
 
