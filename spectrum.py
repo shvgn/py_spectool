@@ -7,7 +7,7 @@ __date__ = '2015-02-11'
 
 EVNM_CONST = 1239.84193
 EVNM_BORDER = 100
-SPLINE_ORDER = 5  # Sure this must be a paramenter not a global
+SPLINE_ORDER = 5  # FIXME Sure this must be a paramenter not a global
 
 
 def convert_nmev(x_array):
@@ -151,6 +151,7 @@ class Spectrum(object):
         # supported_operators = ("+", "-", "*", "/")
 
         # headers_op = ("added_to", "subtracted", "multiplied_by", "divided_by")
+        # FIXME this must be taken from __op_headers.keys()
         supported_methods = ('__add__', '__sub__', '__mul__', '__truediv__')
         if method not in supported_methods:
             raise ValueError("Unsupported arithmetic operator")
