@@ -6,15 +6,11 @@ __date__ = '2015-02-11'
 
 import sys
 import os
-
 import numpy as np
-
 import spectrum as sp
 
-
-
-#
-DIVIDER = 4
+ 
+DIVIDER = 2.5
 SHIFT_TO_MIN = 10  # indexes
 
 if len(sys.argv) == 1:
