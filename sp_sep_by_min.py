@@ -9,12 +9,11 @@ import os
 import numpy as np
 import spectrum as sp
 
- 
 DIVIDER = 2.5
-SHIFT_TO_MIN = 10  # indexes
-
+SHIFT_TO_MIN = 10  # Indexes
+ 
 if len(sys.argv) == 1:
-    print("usage: {0} datafile1 [datafile2 ...]".format(
+    print("usage: {0} [datafile2 ...]".format(
         os.path.basename(sys.argv[0])))
     sys.exit(0)
 

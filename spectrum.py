@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
+#~*~encoding: utf-8~*~
+
 import numpy as np
 from scipy import interpolate
 
 __author__ = 'Evgenii Shevchenko'
 __email__ = 'shevchenko@beam.ioffe.ru'
-__date__ = '2015-02-11'
+__date__ = '2015-03-05'
 
 EVNM_CONST = 1239.84193
 EVNM_BORDER = 100
@@ -117,6 +120,7 @@ class Spectrum(object):
     def __init__(self, x, y, headers=None):
         if len(x) != len(y):
             raise ValueError("X and Y must be of the same length")
+        # Ensure X is sorted in ascending order
         self.x, self.y = zip(*sorted(list(zip(x, y))))
         self.x = np.array(self.x, dtype=float)
         self.y = np.array(self.y, dtype=float)
@@ -158,7 +162,7 @@ class Spectrum(object):
 
         headers_new = self.headers
 
-        # The second operand can be a number
+        # The second argument can be a number
         op_header = self.__op_headers[method]
         if isinstance(other, int) or isinstance(other, float):
             if op_header in self.headers:
@@ -239,10 +243,35 @@ class Spectrum(object):
 
     def area(self):
         """
-        Calculate area under the spectrum
+        Calculate area under the Y curve
         """
         s = 0
         for i in range(len(self.x) - 1):
             s += 0.5 * (self.y[i] + self.y[i + 1]) * \
                  (self.x[i + 1] - self.x[i])
         return s
+
+    def xfilter(self, xl=None, xr=None):
+        """
+        Choose X interval from xl to xr
+        """
+        lpos = 0
+        rpos = len(self.x)-1
+        xmin = self.x[0]
+        xmax = self.x[rpos]
+        need_new = False
+        if not xl is None and xl > xmin:
+            lpos = np.argmin(np.abs(self.x - xl))
+            need_new = True
+        if not xr is None and xr < xmax:
+            rpos = np.argmin(np.abs(self.x - xr))
+            need_new = True
+        if need_new:
+            return Spectrum(self.x[lpos:rpos], self.y[lpos:rpos], self.headers)
+        return self
+
+
+if __name__ == '__main__':
+    print("this is Spectrum class file, not a python script")
+
+
