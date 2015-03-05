@@ -17,5 +17,6 @@ for arg in sys.argv[1:]:
     data.append(sp.spectrum_from_file(arg))
 
 for spdata in data:
-    print(str(spdata.area()).rjust(15), "  ", spdata.headers['filepath'])
+    print( ("%.6f" % spdata.area()).rjust(15), "  ", spdata.headers['filepath'])
+    # print(str(spdata.area()).rjust(15), "  ", spdata.headers['filepath'])
 
