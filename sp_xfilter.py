@@ -17,33 +17,34 @@ if len(sys.argv) < 4:
 
 
 # Check the boundaries
-xleft  = sys.argv[1]
-xright = sys.argv[2]
+xleft_str  = sys.argv[1]
+xright_str = sys.argv[2]
 
-if xleft == "_":
+if xleft_str == "_":
     xleft = None
 else:
-    xleft = float(xleft)
+    xleft = float(xleft_str)
 
-if xright == "_":
+if xright_str == "_":
     xright = None
 else:
-    xright = float(xright)
+    xright = float(xright_str)
 
 if xleft is None and xright is None:
     sys.exit(0)
 
 # Filename suffix format 
-fmt = "__[%f,%f]"
-suffix = "__[]"
+fmt = "__flt"
+suffix = ""
 if xleft is None:
-    fmt = "__[:,%f]"
-    suffix = fmt % xright
-elsif xright is None:  
-    fmt = "__[%f,:]"
-    suffix = fmt % xleft
+    fmt += "[:,%s]"
+    suffix = fmt % xright_str
+elif xright is None:  
+    fmt += "[%s,:]"
+    suffix = fmt % xleft_str
 else:
-    suffix = fmt % (xleft, xright)
+    fmt += "[%s,%s]"
+    suffix = fmt % (xleft_str, xright_str)
 
 # Reading the data files
 data = []
