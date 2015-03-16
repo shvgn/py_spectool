@@ -270,6 +270,31 @@ class Spectrum(object):
             return Spectrum(self.x[lpos:rpos], self.y[lpos:rpos], self.headers)
         return self
 
+    def min(self, xleft=None, xright=None):
+        """ 
+        (x, y, idx) = spectrum.min(xleft, xright)
+        Returns minimum y, its x and its index in the range between [xleft, xright], both
+        xleft and xright default to None which means the whole spectrum X range
+        """
+        need_new = True
+        posshift = 0
+        if (xleft is None) and (xright is None):
+            need_new = False
+        if xleft is None:
+            xleft = self.x[0]
+        if xright is None:
+            xright = self.x[len(self.x) - 1]
+        spcut = self
+        if need_new:
+            spcut = self.xfilter(xleft, xright)
+            if xleft != self.x[0]:
+                posshift = np.argmin(np.abs(self.x - xleft))
+        minpos_local = np.argmin(spcut.y)
+        minpos = minpos_local + posshift
+        return (spcut.x[minpos_local], spcut.y[minpos_local], minpos)
+
+		
+
 
 if __name__ == '__main__':
     print("this is Spectrum class file, not a python script")

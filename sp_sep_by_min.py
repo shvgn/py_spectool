@@ -9,64 +9,80 @@ import os
 import numpy as np
 import spectrum as sp
 
-DIVIDER = 2.5
-SHIFT_TO_MIN = 10  # Indexes
- 
-if len(sys.argv) == 1:
-    print("usage: {0} [datafile2 ...]".format(
+if len(sys.argv) < 4:
+    print("usage: {0} xleft xright [datafile ...]".format(
         os.path.basename(sys.argv[0])))
+    print("xleft or xright can be omitted by passing underscore '_'")
     sys.exit(0)
 
+
+# Check the boundaries
+xleft_str  = sys.argv[1]
+xright_str = sys.argv[2]
+
+if xleft_str == "_":
+    xleft = None
+else:
+    xleft = float(xleft_str)
+
+if xright_str == "_":
+    xright = None
+else:
+    xright = float(xright_str)
+
+if xleft is None and xright is None:
+    sys.exit(0)
+
+
+
+# 
+# DIVIDER = 2.5
+# SHIFT_TO_MIN = 10  # Indexes
+#  
+# if len(sys.argv) == 1:
+#     print("usage: {0} [datafile2 ...]".format(
+#         os.path.basename(sys.argv[0])))
+#     sys.exit(0)
+# 
+
+
+# Filename suffix format 
+# fmt = "__cut"
+# suffix = ""
+# if xleft is None:
+#     fmt += "[:,%s]"
+#     suffix = fmt % xright_str
+# elif xright is None:  
+#     fmt += "[%s,:]"
+#     suffix = fmt % xleft_str
+# else:
+#     fmt += "[%s,%s]"
+#     suffix = fmt % (xleft_str, xright_str)
+# 
+
+# Collecting data
 data = []
-for arg in sys.argv[1:]:
+for arg in sys.argv[3:]:
     if not (os.path.exists(arg) and os.path.isfile(arg)):
         print("Warning! Cannot open file <" + arg + ">. Skipping.")
         continue
     data.append(sp.spectrum_from_file(arg))
 
+# Processing
 for spdata in data:
-    l = len(spdata.y)
+    (xmin, ymin, minpos) = spdata.min(xleft, xright)
+    l = len(spdata)
+    print("minpos " + str(minpos))
+    print("xmin" + str(xmin))
+    print("ymin" + str(ymin))
+    spleft  = sp.Spectrum( spdata.x[0:minpos], spdata.y[0:minpos], spdata.headers.copy() )
+    spright = sp.Spectrum( spdata.x[minpos:l], spdata.y[minpos:l], spdata.headers.copy() )
 
-    # print(l // DIVIDER)
-    # print(l - l // DIVIDER)
-    # print(spdata.y[l // DIVIDER: l - l // DIVIDER])
+    spleft.headers['filepath']  += "__left(to_%s)" % str(xmin)
+    spright.headers['filepath'] += "__right(from_%s)" % str(xmin)
 
-    # l_offset = l // DIVIDER
-    # r_offset = l - l_offset
+    with open(spleft.headers['filepath'], 'w') as new_file:
+        new_file.write(str(spleft))
+    with open(spright.headers['filepath'], 'w') as new_file:
+        new_file.write(str(spright))
 
-    l_offset = np.argmax(spdata.y[:l // 2])
-    r_offset = np.argmax(spdata.y[l // 2:]) + l // 2
-    minpos = np.argmin(spdata.y[l_offset:r_offset + 1]) + l_offset
-
-    while minpos == l_offset:
-        l_offset -= SHIFT_TO_MIN
-        r_offset = l - l_offset
-        minpos = np.argmin(spdata.y[l_offset:r_offset + 1]) + l_offset
-    while minpos == r_offset:
-        r_offset += SHIFT_TO_MIN
-        l_offset = l - r_offset
-        minpos = np.argmin(spdata.y[l_offset:r_offset + 1]) + l_offset
-
-    # print("Length is ", l, "Minpos is ", minpos)
-
-    # QW is on the left and barrier is on the right if x is in eV's
-    x_qw = spdata.x[0:minpos]
-    y_qw = spdata.y[0:minpos]
-
-    x_br = spdata.x[minpos:l]
-    y_br = spdata.y[minpos:l]
-
-    if np.mean(spdata.x) > 100:
-        # It's nanometers, not electron-volts
-        x_qw, x_br = x_br, x_qw
-        y_qw, y_br = y_br, y_qw
-    qw = sp.Spectrum(x_qw, y_qw, spdata.headers.copy())
-    br = sp.Spectrum(x_br, y_br, spdata.headers.copy())
-
-    qw.headers['filepath'] += "__qw"
-    br.headers['filepath'] += "__br"
-
-    with open(qw.headers['filepath'], 'w') as new_file:
-        new_file.write(str(qw))
-    with open(br.headers['filepath'], 'w') as new_file:
-        new_file.write(str(br))
