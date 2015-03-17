@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
-# import argparse
+# TODO make both nm and eV scales in one axes or two subplots
+
 import sys
 import os
-
+import re
 import matplotlib.pyplot as pl
-
 import spectrum as sp
-
 
 if len(sys.argv) == 1:
     print("usage: {0} datafile1 [datafile2 ...]".format(
@@ -22,13 +21,15 @@ for arg in sys.argv[1:]:
     data.append(sp.spectrum_from_file(arg))
 
 pl.figure()
-# TODO show grid
-# TODO generate legend
-# TODO make both nm and eV scales in one axes or two subplots
 legend = []
 for spdata in data:
     pl.plot(spdata.x, spdata.y)
-    legend.append(os.path.basename(spdata.headers['filepath']))
+    # Get rid of metainfo after kelvins, only which matters in plots
+    legend_item = re.sub("K.*", " K", os.path.basename(spdata.headers['filepath']))
+    # Get rid of useless prefix in legend
+    legend_item = legend_item.replace("ev-", "")
+    legend.append(legend_item)
 pl.grid()
 pl.legend(legend)
 pl.show()
+
