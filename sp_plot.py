@@ -5,7 +5,9 @@
 import sys
 import os
 import re
+
 import matplotlib.pyplot as pl
+
 import spectrum as sp
 
 if len(sys.argv) == 1:
@@ -23,12 +25,12 @@ for arg in sys.argv[1:]:
 pl.figure()
 legend = []
 for spdata in data:
-    pl.plot(spdata.x, spdata.y)
     # Get rid of metainfo after kelvins, only which matters in plots
     legend_item = re.sub("K.*", " K", os.path.basename(spdata.headers['filepath']))
     # Get rid of useless prefix in legend
     legend_item = legend_item.replace("ev-", "")
     legend.append(legend_item)
+    pl.plot(spdata.x, spdata.y, label=legend_item)
 pl.grid()
 pl.legend(legend)
 pl.show()
