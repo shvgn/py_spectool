@@ -7,6 +7,7 @@ import os
 import spectrum as sp
 
 
+
 # TODO
 # We have two options here for X which are nanometers or electron-volts. Thus
 # the operation must be independent from X units.
@@ -31,7 +32,15 @@ if refdata.__class__ == sp.Spectrum:
 else:
     ref_fname = str(refdata)
 
+dl = len(data)  # Number of spectra in the data, say 23
+lenstr = str(dl)  # "23"
+ident = 2 * len(lenstr) + 1  # 2*2+1 = 5, to have enough space for "XX/23"
+cnt = 1
+
 for spdata in data:
+    if dl > 1:
+        print(("%s/%s" % (str(cnt), lenstr)).rjust(ident), "  ", end='')
+    cnt += 1
     new_spec = spdata + refdata
     fname = os.path.basename(spdata.headers['filepath'])
     fdir = os.path.dirname(spdata.headers['filepath'])

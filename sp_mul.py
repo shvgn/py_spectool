@@ -6,7 +6,6 @@ import os
 
 import spectrum as sp
 
-
 newfmt = "%s__mul__%s"
 
 if len(sys.argv) == 1:
@@ -28,7 +27,15 @@ if refdata.__class__ == sp.Spectrum:
 else:
     ref_fname = str(refdata)
 
+dl = len(data)
+lenstr = str(len(data))
+ident = 2 * len(lenstr) + 1
+cnt = 1
+
 for spdata in data:
+    if dl > 1:
+        print(("%s/%s" % (str(cnt), lenstr)).rjust(ident), "  ", end='')
+    cnt += 1
     new_spec = spdata * refdata
     fname = os.path.basename(spdata.headers['filepath'])
     fdir = os.path.dirname(spdata.headers['filepath'])

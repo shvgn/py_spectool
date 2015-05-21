@@ -5,10 +5,9 @@ __date__ = '2015-02-11'
 
 import sys
 import os
-import numpy as np
+
 import spectrum as sp
 
- 
 if len(sys.argv) < 4:
     print("usage: {0} xleft xright [datafile ...]".format(
         os.path.basename(sys.argv[0])))
@@ -37,10 +36,10 @@ if xleft is None and xright is None:
 fmt = "__flt"
 suffix = ""
 if xleft is None:
-    fmt += "[:,%s]"
+    fmt += "[_,%s]"
     suffix = fmt % xright_str
-elif xright is None:  
-    fmt += "[%s,:]"
+elif xright is None:
+    fmt += "[%s,_]"
     suffix = fmt % xleft_str
 else:
     fmt += "[%s,%s]"
@@ -60,4 +59,3 @@ for spdata in data:
     fname = new.headers['filepath'] + suffix
     with open(fname, 'w') as new_file:
         new_file.write(str(new))
-    

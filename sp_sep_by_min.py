@@ -6,7 +6,7 @@ __date__ = '2015-02-11'
 
 import sys
 import os
-import numpy as np
+
 import spectrum as sp
 
 if len(sys.argv) < 4:
@@ -17,7 +17,7 @@ if len(sys.argv) < 4:
 
 
 # Check the boundaries
-xleft_str  = sys.argv[1]
+xleft_str = sys.argv[1]
 xright_str = sys.argv[2]
 
 if xleft_str == "_":
@@ -33,33 +33,6 @@ else:
 if xleft is None and xright is None:
     sys.exit(0)
 
-
-
-# 
-# DIVIDER = 2.5
-# SHIFT_TO_MIN = 10  # Indexes
-#  
-# if len(sys.argv) == 1:
-#     print("usage: {0} [datafile2 ...]".format(
-#         os.path.basename(sys.argv[0])))
-#     sys.exit(0)
-# 
-
-
-# Filename suffix format 
-# fmt = "__cut"
-# suffix = ""
-# if xleft is None:
-#     fmt += "[:,%s]"
-#     suffix = fmt % xright_str
-# elif xright is None:  
-#     fmt += "[%s,:]"
-#     suffix = fmt % xleft_str
-# else:
-#     fmt += "[%s,%s]"
-#     suffix = fmt % (xleft_str, xright_str)
-# 
-
 # Collecting data
 data = []
 for arg in sys.argv[3:]:
@@ -68,21 +41,33 @@ for arg in sys.argv[3:]:
         continue
     data.append(sp.spectrum_from_file(arg))
 
-# Processing
+dl = len(data)
+lenstr = str(len(data))
+ident = 2 * len(lenstr) + 1
+cnt = 1
+
 for spdata in data:
-    (xmin, ymin, minpos) = spdata.min(xleft, xright)
+    if dl > 1:
+        print(("%s/%s" % (str(cnt), lenstr)).rjust(ident), "  ", end='')
+        print("Splitting %s" % spdata.headers['filepath'])
+    cnt += 1
+
+    xmin, ymin, minpos = spdata.min(xleft, xright)
+    print("".rjust(ident) + "  minpos = %d   xmin = %f   ymin = %f" % (minpos, xmin, ymin))
+
     l = len(spdata)
-    print("minpos " + str(minpos))
-    print("xmin" + str(xmin))
-    print("ymin" + str(ymin))
-    spleft  = sp.Spectrum( spdata.x[0:minpos], spdata.y[0:minpos], spdata.headers.copy() )
-    spright = sp.Spectrum( spdata.x[minpos:l], spdata.y[minpos:l], spdata.headers.copy() )
+    if minpos > 0:
+        spleft = sp.Spectrum(spdata.x[0:minpos], spdata.y[0:minpos], spdata.headers.copy())
+        spleft.headers['filepath'] += "__left(to_%s)" % str(xmin)
+        with open(spleft.headers['filepath'], 'w') as new_file:
+            new_file.write(str(spleft))
+    else:
+        print("".rjust(ident) + "  Left-side spectrum is empty, omitting.")
 
-    spleft.headers['filepath']  += "__left(to_%s)" % str(xmin)
-    spright.headers['filepath'] += "__right(from_%s)" % str(xmin)
-
-    with open(spleft.headers['filepath'], 'w') as new_file:
-        new_file.write(str(spleft))
-    with open(spright.headers['filepath'], 'w') as new_file:
-        new_file.write(str(spright))
-
+    if minpos < l - 1:
+        spright = sp.Spectrum(spdata.x[minpos:l], spdata.y[minpos:l], spdata.headers.copy())
+        spright.headers['filepath'] += "__right(from_%s)" % str(xmin)
+        with open(spright.headers['filepath'], 'w') as new_file:
+            new_file.write(str(spright))
+    else:
+        print("".rjust(ident) + "  Right-side spectrum is empty, omitting.")

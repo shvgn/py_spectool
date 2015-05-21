@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#~*~encoding: utf-8~*~
+# ~*~encoding: utf-8~*~
 
 import numpy as np
 from scipy import interpolate
@@ -10,7 +10,7 @@ __date__ = '2015-03-05'
 
 EVNM_CONST = 1239.84193
 EVNM_BORDER = 100
-SPLINE_ORDER = 5  # FIXME Sure this must be a paramenter not a global
+SPLINE_ORDER = 5  # FIXME Sure this must be a parameter not a global
 
 
 def convert_nmev(x_array):
@@ -52,7 +52,7 @@ def ary_deriv(xary, yary):
     Return dy and dx with length-2 related to the input arrays
     """
     dx = np.array(xary[1:len(xary) - 1])
-    dy = ap.array([point_deriv(xary, yary, i)
+    dy = np.array([point_deriv(xary, yary, i)
                    for i in range(1, len(xary) - 1)])
     return dx, dy
 
@@ -120,6 +120,8 @@ class Spectrum(object):
     def __init__(self, x, y, headers=None):
         if len(x) != len(y):
             raise ValueError("X and Y must be of the same length")
+        if len(x) == 0:
+            raise ValueError("Spectrum data must be non-zero, received zero length")
         # Ensure X is sorted in ascending order
         self.x, self.y = zip(*sorted(list(zip(x, y))))
         self.x = np.array(self.x, dtype=float)
@@ -138,7 +140,7 @@ class Spectrum(object):
     def __truediv__(self, other):
         return self.__arithmetic(other, '__truediv__')
 
-    def __arithmetic(self, other, method):
+    def __arithmetic(self, other, method, verbose=True):
         """
         Arithmetic operation of the spectrum with a reference spectrum, 
         the last being interpolated with 5-degree spline. 
@@ -160,6 +162,23 @@ class Spectrum(object):
         if method not in supported_methods:
             raise ValueError("Unsupported arithmetic operator")
 
+        opstring = "WTF we are doing with"
+        pron = "and"
+        if method == '__add__':
+            opstring = "Adding"
+            pron = "to"
+        elif method == '__sub__':
+            opstring = "Subtracting"
+            pron = "from"
+        elif method == '__mul__':
+            opstring = "Multiplying"
+            pron = "by"
+        elif method == '__truediv__':
+            opstring = "Dividing"
+            pron = "by"
+
+        opfmt = opstring + " %s " + pron + " %s"
+
         headers_new = self.headers
 
         # The second argument can be a number
@@ -169,6 +188,8 @@ class Spectrum(object):
                 headers_new[op_header] += ", " + str(other)
             else:
                 headers_new[op_header] = str(other)  # A number is here
+                if verbose:
+                    print(opfmt % (str(other), self.headers['filepath']))
             return Spectrum(self.x,
                             getattr(self.y, method)(other), headers_new)
 
@@ -195,6 +216,8 @@ class Spectrum(object):
 
         if 'filepath' in other.headers:
             headers_new[op_header] = other.headers['filepath']
+        if verbose:
+            print(opfmt % (other.headers['filepath'], self.headers['filepath']))
         return Spectrum(x_new, y_new, headers_new)
 
     def __str__(self):
@@ -227,7 +250,7 @@ class Spectrum(object):
         assumed to be constant and to take the majority of the signal length (X)
         """
         counts = dict()
-        # Populate statisctics
+        # Populate statistics
         for el in self.y:
             el = int(round(el))
             if counts.get(el, None) is None:
@@ -247,8 +270,7 @@ class Spectrum(object):
         """
         s = 0
         for i in range(len(self.x) - 1):
-            s += 0.5 * (self.y[i] + self.y[i + 1]) * \
-                 (self.x[i + 1] - self.x[i])
+            s += 0.5 * (self.y[i] + self.y[i + 1]) * (self.x[i + 1] - self.x[i])
         return s
 
     def xfilter(self, xl=None, xr=None):
@@ -256,14 +278,14 @@ class Spectrum(object):
         Choose X interval from xl to xr
         """
         lpos = 0
-        rpos = len(self.x)-1
+        rpos = len(self.x) - 1
         xmin = self.x[0]
         xmax = self.x[rpos]
         need_new = False
-        if not xl is None and xl > xmin:
+        if xl is not None and xl > xmin:
             lpos = np.argmin(np.abs(self.x - xl))
             need_new = True
-        if not xr is None and xr < xmax:
+        if xr is not None and xr < xmax:
             rpos = np.argmin(np.abs(self.x - xr))
             need_new = True
         if need_new:
@@ -291,12 +313,8 @@ class Spectrum(object):
                 posshift = np.argmin(np.abs(self.x - xleft))
         minpos_local = np.argmin(spcut.y)
         minpos = minpos_local + posshift
-        return (spcut.x[minpos_local], spcut.y[minpos_local], minpos)
-
-		
+        return spcut.x[minpos_local], spcut.y[minpos_local], minpos
 
 
 if __name__ == '__main__':
     print("this is Spectrum class file, not a python script")
-
-
