@@ -26,12 +26,16 @@ pl.figure()
 legend = []
 for spdata in data:
     # Get rid of metainfo after kelvins, only which matters in plots
-    legend_item = re.sub("K.*", " K", os.path.basename(spdata.headers['filepath']))
+    legend_item = re.sub(
+        "K.*", " K", os.path.basename(spdata.headers['filepath']))
     # Get rid of useless prefix in legend
     legend_item = legend_item.replace("ev-", "")
-    legend.append(legend_item)
+    if len(legend_item) > 10:
+        # Only first ten characters. We unlikely need more.
+        legend.append(legend_item[0:10] + "...")
+    else:
+        legend.append(legend_item)
     pl.plot(spdata.x, spdata.y, label=legend_item)
 pl.grid()
 pl.legend(legend)
 pl.show()
-

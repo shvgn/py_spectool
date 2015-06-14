@@ -30,7 +30,8 @@ pl.plot(spec.x, yf)
 legend.append("Smoothed")
 
 pl.plot(spec.x, spec.y)
-legend.append(os.path.basename(spec.headers['filepath']))
+legend.append("Original")
+# legend.append(os.path.basename(spec.headers['filepath']))
 
 pl.grid()
 pl.legend(legend)
