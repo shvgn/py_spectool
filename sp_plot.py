@@ -5,10 +5,10 @@
 import sys
 import os
 import re
-
 import matplotlib.pyplot as pl
-
 import spectrum as sp
+
+MAX_LEGEND_ENTRY_LEN = 20
 
 if len(sys.argv) == 1:
     print("usage: {0} datafile1 [datafile2 ...]".format(
@@ -25,14 +25,14 @@ for arg in sys.argv[1:]:
 pl.figure()
 legend = []
 for spdata in data:
+    legend_item = os.path.basename(spdata.headers['filepath'])
     # Get rid of metainfo after kelvins, only which matters in plots
-    legend_item = re.sub(
-        "K.*", " K", os.path.basename(spdata.headers['filepath']))
+    # legend_item = re.sub( "K.*", " K", legend_item) 
     # Get rid of useless prefix in legend
     legend_item = legend_item.replace("ev-", "")
-    if len(legend_item) > 10:
+    if len(legend_item) > MAX_LEGEND_ENTRY_LEN:
         # Only first ten characters. We unlikely need more.
-        legend.append(legend_item[0:10] + "...")
+        legend.append(legend_item[0:MAX_LEGEND_ENTRY_LEN-3] + "...")
     else:
         legend.append(legend_item)
     pl.plot(spdata.x, spdata.y, label=legend_item)
