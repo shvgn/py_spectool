@@ -8,7 +8,7 @@ import re
 import matplotlib.pyplot as pl
 import spectrum as sp
 
-MAX_LEGEND_ENTRY_LEN = 20
+MAX_LEGEND_ENTRY_LEN = 30
 
 if len(sys.argv) == 1:
     print("usage: {0} datafile1 [datafile2 ...]".format(
