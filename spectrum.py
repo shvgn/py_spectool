@@ -115,7 +115,8 @@ class Spectrum(object):
     __op_headers = {'__add__': 'added_to',
                     '__sub__': 'subtracted',
                     '__mul__': 'multiplied_by',
-                    '__truediv__': 'divided_by'}
+                    '__truediv__': 'divided_by',
+                    '__pow__': 'exponentiated_by' }
 
     def __init__(self, x, y, headers=None):
         if len(x) != len(y):
@@ -140,6 +141,9 @@ class Spectrum(object):
     def __truediv__(self, other):
         return self.__arithmetic(other, '__truediv__')
 
+    def __pow__(self, other):
+        return self.__arithmetic(other, '__pow__')
+
     def __arithmetic(self, other, method, verbose=True):
         """
         Arithmetic operation of the spectrum with a reference spectrum, 
@@ -147,35 +151,41 @@ class Spectrum(object):
         See numpy.interpolation.interp1d for interpolation types.
 
         Supported operators are
-        +   __add__     addition
-        -   __sub__     subtraction
-        *   __mul__     multiplication
-        /   __truediv__ division
+        +   __add__      addition
+        -   __sub__      subtraction
+        *   __mul__      multiplication
+        /   __truediv__  division
+        **  __pow__      exponentiation
         """
 
         # Find out what's the operation
-        # supported_operators = ("+", "-", "*", "/")
-
-        # headers_op = ("added_to", "subtracted", "multiplied_by", "divided_by")
-        # FIXME this must be taken from __op_headers.keys()
-        supported_methods = ('__add__', '__sub__', '__mul__', '__truediv__')
+        supported_methods = self.__op_headers.keys()
         if method not in supported_methods:
             raise ValueError("Unsupported arithmetic operator")
 
         opstring = "WTF we are doing with"
         pron = "and"
         if method == '__add__':
+            # Adding file to argument
             opstring = "Adding"
             pron = "to"
         elif method == '__sub__':
-            opstring = "Subtracting"
-            pron = "from"
+            # Subtracting argumet from file
+            # From file subtracting argumet 
+            opstring = "From"
+            pron = "subtracting"
         elif method == '__mul__':
+            # Multiplying file by argument 
             opstring = "Multiplying"
             pron = "by"
         elif method == '__truediv__':
+            # Dividing file by argument 
             opstring = "Dividing"
             pron = "by"
+        elif method == '__pow__':
+            # Raising file to the argument 
+            opstring = "Raising"
+            pron = "to the"
 
         opfmt = opstring + " %s " + pron + " %s"
 
@@ -189,7 +199,7 @@ class Spectrum(object):
             else:
                 headers_new[op_header] = str(other)  # A number is here
                 if verbose:
-                    print(opfmt % (str(other), self.headers['filepath']))
+                    print(opfmt % (self.headers['filepath'], str(other)))
             return Spectrum(self.x,
                             getattr(self.y, method)(other), headers_new)
 
@@ -217,7 +227,7 @@ class Spectrum(object):
         if 'filepath' in other.headers:
             headers_new[op_header] = other.headers['filepath']
         if verbose:
-            print(opfmt % (other.headers['filepath'], self.headers['filepath']))
+            print(opfmt % (self.headers['filepath'], other.headers['filepath']))
         return Spectrum(x_new, y_new, headers_new)
 
     def __str__(self):
