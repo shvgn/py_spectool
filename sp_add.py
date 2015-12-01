@@ -8,8 +8,7 @@ import spectrum as sp
 
 
 
-# TODO
-# We have two options here for X which are nanometers or electron-volts. Thus
+# TODO We have two options here for X which are nanometers or electron-volts. Thus
 # the operation must be independent from X units.
 
 newfmt = "%s__add__%s"
@@ -27,7 +26,7 @@ for arg in sys.argv[2:]:
         continue
     data.append(sp.spectrum_from_file(arg))
 
-if refdata.__class__ == sp.Spectrum:
+if refdata.__class__ is sp.Spectrum:
     ref_fname = os.path.basename(refdata.headers['filepath'])
 else:
     ref_fname = str(refdata)

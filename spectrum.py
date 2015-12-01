@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # ~*~encoding: utf-8~*~
 
+import sys
+import os
 import numpy as np
 from scipy import interpolate
 
@@ -38,10 +40,32 @@ def point_deriv(xary, yary, index):
         raise ValueError("Index must be between zero and len-2")
     # Left derivative
     dl = (yary[index] - yary[index - 1]) / (xary[index] - xary[index - 1])
-    # Rigth derivative
+    # Right derivative
     dr = (yary[index + 1] - yary[index]) / (xary[index + 1] - xary[index])
     # Mean
     return 0.5 * (dl + dr)
+
+
+def get_data_list(filelist, usagefmt='usage: {0} reffile datafile1 [datafile2 ...]',
+                  minfiles=1, maxfiles=1024):
+    """Returns a list of spectrum instances"""
+    if len(filelist) < minfiles or len(filelist) > maxfiles:
+        print(usagefmt.format(os.path.basename(filelist[0])))
+        sys.exit(1)  # Maybe throwing an exception would be better here
+
+    refdata = get_ref_data(filelist[1])
+    datalist = []
+    for fname in filelist[2:]:
+        if not (os.path.exists(fname) and os.path.isfile(fname)):
+            print("Warning! Cannot open file <" + fname + ">. Skipping.")
+            continue
+        datalist.append(spectrum_from_file(fname))
+
+    ref_fname = str(refdata)
+    if refdata.__class__ is Spectrum:
+        ref_fname = os.path.basename(refdata.headers['filepath'])
+
+    return ref_fname, refdata, datalist
 
 
 def ary_deriv(xary, yary):
@@ -65,7 +89,6 @@ def get_ref_data(file_or_number):
     a number or a file path. Returns either float or Spectrum instance with
     the content of the file.
     """
-    import os
     # if not (os.path.exists(file_or_number) and os.path.isfile(file_or_number)):
     # sys.exit("First argument: file not found or it's not a file")
     # refdata = spectrum_from_file(file_or_number)
