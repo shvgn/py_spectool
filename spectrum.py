@@ -6,11 +6,11 @@ from scipy import interpolate
 
 __author__ = 'Evgenii Shevchenko'
 __email__ = 'shevchenko@beam.ioffe.ru'
-__date__ = '2015-03-05'
+__date__ = '2015-12-01'
 
-EVNM_CONST = 1239.84193
-EVNM_BORDER = 100
-SPLINE_ORDER = 5  # FIXME Sure this must be a parameter not a global
+EVNM_CONST = 1239.84193  # (1 eV) * (1 nm) = EVNM_CONST
+EVNM_BORDER = 100  # eV < 100 <= nm
+SPLINE_ORDER = 5  # Default order of spline interpolation
 
 
 def convert_nmev(x_array):
@@ -144,7 +144,7 @@ class Spectrum(object):
     def __pow__(self, other):
         return self.__arithmetic(other, '__pow__')
 
-    def __arithmetic(self, other, method, verbose=True):
+    def __arithmetic(self, other, method, verbose=True, spline_order=SPLINE_ORDER):
         """
         Arithmetic operation of the spectrum with a reference spectrum, 
         the last being interpolated with 5-degree spline. 
@@ -170,8 +170,8 @@ class Spectrum(object):
             opstring = "Adding"
             pron = "to"
         elif method == '__sub__':
-            # Subtracting argumet from file
-            # From file subtracting argumet 
+            # Subtracting argument from file
+            # From file subtracting argument
             opstring = "From"
             pron = "subtracting"
         elif method == '__mul__':
@@ -226,14 +226,12 @@ class Spectrum(object):
                 x_new = np.append(x_new, self.x[i])
                 if self.x[i] != other.x[i + oth_shift]:
                     if interpolator_used is False:
-                        f = interpolate.interp1d(other.x, other.y, SPLINE_ORDER)
+                        f = interpolate.interp1d(other.x, other.y, spline_order)
                         interpolator_used = True
                     y_new = np.append(
                         y_new, getattr(self.y[i], method)(f(self.x[i])))
                 else:
                     y_new = np.append(y_new, getattr(self.y[i], method)(other.y[i + oth_shift]))
-
-
 
         if 'filepath' in other.headers:
             headers_new[op_header] = other.headers['filepath']
