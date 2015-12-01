@@ -208,21 +208,32 @@ class Spectrum(object):
         if not other.__class__ == Spectrum:
             raise TypeError("Not Spectrum instance or a number")
 
-        x_min = np.maximum(np.min(self.x), np.min(other.x))
-        x_max = np.minimum(np.max(self.x), np.max(other.x))
+        x_min = np.maximum(np.min(self.x), np.min(other.x))  # Min is max of mins
+        x_max = np.minimum(np.max(self.x), np.max(other.x))  # Max is min of maxes
+        oth_shift = 0  # Shift of the other spectrum X index if X's coincide.
+        # TODO calculate the oth_shift
 
         if x_max < x_min:
             raise ValueError("X ranges do not overlap")
 
-        f = interpolate.interp1d(other.x, other.y, SPLINE_ORDER)
-
+        interpolator_used = False
+        f = None
+        # f = interpolate.interp1d(other.x, other.y, SPLINE_ORDER)
         x_new = np.array([], dtype=float)
         y_new = np.array([], dtype=float)
         for i in range(len(self.x)):
-            if x_min <= self.x[i] <= x_max:
+            if x_min <= self.x[i] <= x_max:  # If we are in the range
                 x_new = np.append(x_new, self.x[i])
-                y_new = np.append(
-                    y_new, getattr(self.y[i], method)(f(self.x[i])))
+                if self.x[i] != other.x[i + oth_shift]:
+                    if interpolator_used is False:
+                        f = interpolate.interp1d(other.x, other.y, SPLINE_ORDER)
+                        interpolator_used = True
+                    y_new = np.append(
+                        y_new, getattr(self.y[i], method)(f(self.x[i])))
+                else:
+                    y_new = np.append(y_new, getattr(self.y[i], method)(other.y[i + oth_shift]))
+
+
 
         if 'filepath' in other.headers:
             headers_new[op_header] = other.headers['filepath']
