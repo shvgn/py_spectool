@@ -8,7 +8,7 @@ from scipy import interpolate
 
 __author__ = 'Evgenii Shevchenko'
 __email__ = 'shevchenko@beam.ioffe.ru'
-__date__ = '2015-12-01'
+__date__ = '2015-12-02'
 
 EVNM_CONST = 1239.84193  # (1 eV) * (1 nm) = EVNM_CONST
 EVNM_BORDER = 100  # eV < 100 <= nm
@@ -19,8 +19,6 @@ def convert_nmev(x_array):
     """
     Convert array of nanometers to electron-volts and in reverse
     x -> 1239.84193 / x
-    :param x_array:
-    :return:
     """
     return np.array([EVNM_CONST / x for x in x_array])
 
@@ -133,8 +131,11 @@ def spectrum_from_file(filepath):
 
 
 # TODO rename Spectrum class to XYData, because it has nothing to do with
-# spectra, only manipulating two-column data
+# spectra, and only manipulates two-column data
 class Spectrum(object):
+    '''
+    Class for manipulation of two-column (X,Y) data with meta support
+    '''
     __op_headers = {'__add__': 'added_to',
                     '__sub__': 'subtracted',
                     '__mul__': 'multiplied_by',
