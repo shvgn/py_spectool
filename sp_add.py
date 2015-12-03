@@ -43,6 +43,7 @@ for spdata in data:
     new_spec = spdata + refdata
     fname = os.path.basename(spdata.headers['filepath'])
     fdir = os.path.dirname(spdata.headers['filepath'])
-    fpath_new = os.path.join(fdir, newfmt % (fname, ref_fname))
-    with open(fpath_new, 'w') as new_file:
+    new_path = os.path.join(fdir, newfmt % (fname, ref_fname))
+    # new_spec.headers['filepath'] = new_path
+    with open(new_path, 'w') as new_file:
         new_file.write(str(new_spec))

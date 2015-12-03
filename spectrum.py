@@ -116,8 +116,8 @@ def spectrum_from_file(filepath):
         try:
             xy = line.replace(",", ".")
             xy = xy.split()
-            x = np.append(x, float(xy[0]))
-            y = np.append(y, float(xy[1]))
+            x = np.append(x, float(xy[0]))  # FIXME Expecxted Union[ndarray, iterable], got float
+            y = np.append(y, float(xy[1]))  # FIXME Expecxted Union[ndarray, iterable], got float
         except ValueError:
             # If floats cannot be parsed the data is written to headers
             seps = [':', '=', None]
@@ -133,24 +133,26 @@ def spectrum_from_file(filepath):
 # TODO rename Spectrum class to XYData, because it has nothing to do with
 # spectra, and only manipulates two-column data
 class Spectrum(object):
-    '''
+    """
     Class for manipulation of two-column (X,Y) data with meta support
-    '''
-    __op_headers = {'__add__': 'added_to',
-                    '__sub__': 'subtracted',
-                    '__mul__': 'multiplied_by',
+    """
+    __op_headers = {'__add__':     'added_to',
+                    '__sub__':     'subtracted',
+                    '__mul__':     'multiplied_by',
                     '__truediv__': 'divided_by',
-                    '__pow__': 'exponentiated_by' }
+                    '__pow__':     'exponentiated_by'}
 
     def __init__(self, x, y, headers=None):
         if len(x) != len(y):
             raise ValueError("X and Y must be of the same length")
         if len(x) == 0:
-            raise ValueError("Spectrum data must be non-zero, received zero length")
+            raise ValueError("Spectrum data must be non-zero")
         # Ensure X is sorted in ascending order
         self.x, self.y = zip(*sorted(list(zip(x, y))))
         self.x = np.array(self.x, dtype=float)
         self.y = np.array(self.y, dtype=float)
+        if headers.__class__ is not dict and headers is not None:
+            raise ValueError("headers must be a dict")
         self.headers = headers
 
     def __add__(self, other):
@@ -209,11 +211,11 @@ class Spectrum(object):
         elif method == '__pow__':
             # Raising file to the argument 
             opstring = "Raising"
-            pron = "to the"
+            pron = "to"
 
         opfmt = opstring + " %s " + pron + " %s"
 
-        headers_new = self.headers
+        headers_new = self.headers.copy()
 
         # The second argument can be a number
         op_header = self.__op_headers[method]
@@ -285,12 +287,10 @@ class Spectrum(object):
 
     def y_shift(self):
         """
-        Naively calculate horizontal shift of y from zero by estimating maximum
-        of the points distribution, the y's being rounded and casted to
-        integers. This method might be useful for estimation of a spectrum
-        noise level in case its amplitude is much higher than 1 so the rounding
-        will not affect the accuracy dramatically. The noise (dark Y) signal is
-        assumed to be constant and to take the majority of the signal length (X)
+        Naively calculate horizontal shift of y from zero by estimating maximum of the points distribution, the Y's
+        being rounded and casted to integers. This method might be useful for estimation of a spectrum noise level
+        in the case when its amplitude is much higher than 1 so the rounding will not affect the accuracy dramatically.
+        The noise (dark Y) signal is assumed to be constant and to take the majority of the signal length.
         """
         counts = dict()
         # Populate statistics
