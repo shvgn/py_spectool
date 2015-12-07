@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # ~*~encoding: utf-8~*~
 
-import sys
 import os
+import sys
+
 import numpy as np
 from scipy import interpolate
 
@@ -25,9 +26,7 @@ def convert_nmev(x_array):
 
 def point_deriv(xary, yary, index):
     """
-    point_deriv(xary, yary, index)
-
-    The derivative of a chosen point (x(i), y(i)) at specified index 
+    The derivative of a chosen point (x(i), y(i)) at specified index
     in passed arrays xary and yary
     """
     if len(xary) != len(yary):
@@ -68,8 +67,6 @@ def get_data_list(filelist, usagefmt='usage: {0} reffile datafile1 [datafile2 ..
 
 def ary_deriv(xary, yary):
     """
-    ary_deriv(xary, yary)
-
     Numeric derivative of y array over x array
     Return dy and dx with length-2 related to the input arrays
     """
@@ -81,8 +78,6 @@ def ary_deriv(xary, yary):
 
 def get_ref_data(file_or_number):
     """
-    get_ref_data(file_or_number)
-
     Get reference data for a calculation via detecting whether the input is
     a number or a file path. Returns either float or Spectrum instance with
     the content of the file.
@@ -116,8 +111,8 @@ def spectrum_from_file(filepath):
         try:
             xy = line.replace(",", ".")
             xy = xy.split()
-            x = np.append(x, float(xy[0]))  # FIXME Expecxted Union[ndarray, iterable], got float
-            y = np.append(y, float(xy[1]))  # FIXME Expecxted Union[ndarray, iterable], got float
+            x = np.append(x, [float(xy[0])])  # FIXME Expecxted Union[ndarray, iterable], got float
+            y = np.append(y, [float(xy[1])])  # FIXME Expecxted Union[ndarray, iterable], got float
         except ValueError:
             # If floats cannot be parsed the data is written to headers
             seps = [':', '=', None]
@@ -170,7 +165,7 @@ class Spectrum(object):
     def __pow__(self, other):
         return self.__arithmetic(other, '__pow__')
 
-    def __arithmetic(self, other, method, verbose=True, spline_order=SPLINE_ORDER):
+    def __arithmetic(self, other, method, verbose=False, spline_order=SPLINE_ORDER):
         """
         Arithmetic operation of the spectrum with a reference spectrum, 
         the last being interpolated with 5-degree spline. 

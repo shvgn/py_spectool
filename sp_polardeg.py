@@ -8,8 +8,9 @@ import spectrum as sp
 
 
 def te_or_tm(matchobj):
-    '''Returns 'te' for 'tm' and vice versa. Used in re.sub for polarization
-    type substitution'''
+    """Returns 'te' for 'tm' and vice versa.
+
+    Used in re.sub for polarization type substitution"""
     if matchobj.group(0) == 'te':
         return 'tm'
     elif matchobj.group(0) == 'tm':
@@ -63,7 +64,7 @@ def extract_pair(datalist):
         te, tm = data2, data1
     return te, tm
 
-
+cnt = 1
 while datalist:
     # Debug
     # print('\n'.join([str(s.headers) for s in datalist]))
@@ -74,11 +75,13 @@ while datalist:
         continue
 
     poldeg = (tm - te) / (tm + te)
-    print(poldeg.headers)
+    # print(poldeg.headers)
 
     fdir, fname_te = os.path.split(te.headers['filepath'])
     fname = re.sub('TE', 'TM-TE', fname_te, flags=re.IGNORECASE)
     newpath = os.path.join(fdir, fname)
+    print("{0}  Saving {1}".format(str(cnt).rjust(3), newpath))
+    cnt += 1
     # try-catch on writing?
     with open(newpath, 'w') as newfile:
         newfile.write(str(poldeg))
