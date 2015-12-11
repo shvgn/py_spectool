@@ -167,8 +167,8 @@ class Spectrum(object):
 
     def __arithmetic(self, other, method, verbose=False, spline_order=SPLINE_ORDER):
         """
-        Arithmetic operation of the spectrum with a reference spectrum, 
-        the last being interpolated with 5-degree spline. 
+        Arithmetic operation of the spectrum with a reference spectrum,
+        the last being interpolated with 5-degree spline.
         See numpy.interpolation.interp1d for interpolation types.
 
         Supported operators are
@@ -196,15 +196,15 @@ class Spectrum(object):
             opstring = "From"
             pron = "subtracting"
         elif method == '__mul__':
-            # Multiplying file by argument 
+            # Multiplying file by argument
             opstring = "Multiplying"
             pron = "by"
         elif method == '__truediv__':
-            # Dividing file by argument 
+            # Dividing file by argument
             opstring = "Dividing"
             pron = "by"
         elif method == '__pow__':
-            # Raising file to the argument 
+            # Raising file to the argument
             opstring = "Raising"
             pron = "to"
 
@@ -260,9 +260,59 @@ class Spectrum(object):
             print(opfmt % (self.headers['filepath'], other.headers['filepath']))
         return Spectrum(x_new, y_new, headers_new)
 
+    def overlap(self, other):
+        """
+        Overlapping properties: minimum, maximum and the index shift.
+
+        Returns (x_min, x_max, shift) if spectra overlap, otherwise raises
+        ValueError. The spectra are assumed to have similar X step since
+        merging is relevant for similar experiment conditions including
+        spectrometers (or other -meters).
+        """
+        if other.__class__ is not Spectrum:
+            raise ValueError("Need a Spectrum in merge")
+        min1, max1 = self.x[0], self.x[-1]
+        min2, max2 = other.x[0], other.x[-1]
+        x_min = np.maximum(min1, min2)  # Min is max of mins
+        x_max = np.minimum(max1, max2)  # Max is min of maxes
+        if x_max < x_min:
+            raise ValueError("X ranges do not overlap")
+        shift =  self.x.index(x_min) - other.x.index(x_min)
+        length = 0
+        if shift > 0:
+            length = len(self) - shift
+        else:
+            length = len(other) + shift
+        return x_min, x_max, shift, length
+
+    def merge(self, other):
+        """Merge this spectrum with the other one.
+        The overlap is linearly weighted."""
+        xmin, xmax, shift, length = self.overlap(other)
+        shift1, shift2 = 0, 0
+        if shift > 0:
+            shift1 = shift
+        else:
+            shift2 = -shift
+        i = 0
+        while i < length:
+            c2 = (i + 1) / (length + 1)
+            c1 = 1 - c2
+            self.y[shift1 + i] = c1 * self.y[shift1 + i] + c2 * other.y[shift2 + i])
+            i += 1
+        if shift > 0:
+            self.x.extend(other.x[shift2 + length:])
+            self.y.extend(other.y[shift2 + length:])
+        else:
+            other.x.extend(self.x[:length])
+            other.y.extend(self.y[:length])
+            self.x = other.x
+            self.y = other.y
+
+
     def __str__(self):
         """
-        Text data representation
+        String representation
         """
         max_header_len = np.max([len(s) for s in self.headers.keys()])
         header_txt = '\n'.join(k.rjust(max_header_len) + ":\t" + v
@@ -273,8 +323,10 @@ class Spectrum(object):
 
     def __len__(self):
         """
-        Number of the data points (x,y), Technically it is length of X and Y.
-        If len(self.x) and len(self.y) is not he same ValeError raises.
+        Number of the data points (x,y)
+
+        Technically it is length of X and Y.  If len(self.x) and len(self.y)
+        are do not coincise ValeError raises.
         """
         if len(self.x) == len(self.y):
             return len(self.x)
@@ -282,10 +334,15 @@ class Spectrum(object):
 
     def y_shift(self):
         """
-        Naively calculate horizontal shift of y from zero by estimating maximum of the points distribution, the Y's
-        being rounded and casted to integers. This method might be useful for estimation of a spectrum noise level
-        in the case when its amplitude is much higher than 1 so the rounding will not affect the accuracy dramatically.
-        The noise (dark Y) signal is assumed to be constant and to take the majority of the signal length.
+        Returns noise level.
+
+        Naively calculate horizontal shift of y from zero by estimating maximum
+        of the points distribution, the Y's being rounded and casted to
+        integers. This method might be useful for estimation of a spectrum
+        noise level in the case when its amplitude is much higher than 1 so the
+        rounding will not affect the accuracy dramatically.  The noise (dark Y)
+        signal is assumed to be constant and to take the majority of the signal
+        length.
         """
         counts = dict()
         # Populate statistics
@@ -331,7 +388,7 @@ class Spectrum(object):
         return self
 
     def min(self, xleft=None, xright=None):
-        """ 
+        """
         (x, y, idx) = spectrum.min(xleft, xright)
         Returns minimum y, its x and its index in the range between [xleft, xright], both
         xleft and xright default to None which means the whole spectrum X range
