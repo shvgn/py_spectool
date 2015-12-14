@@ -28,8 +28,8 @@ while datalist:
     spec = datalist.pop(0)
     check_and_exit(spec)
     try:
-        merged = merged.merge(spec)
-    except ValeError:
+        merged.merge(spec)
+    except ValueError:
         datalist.append(spec)
         continue
     counter += 1
@@ -39,8 +39,7 @@ while datalist:
         sys.exit(1)
 
 fdir, fname = os.path.split(merged.headers['filepath'])
-# FIXME add suffix manipulation functions
+# FIXME add suffix manipulation
 newpath = os.path.join(fdir, 'merged_' + fname)
-# try-catch on writing?
 with open(newpath, 'w') as newfile:
     newfile.write(str(merged))

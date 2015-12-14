@@ -262,12 +262,9 @@ class Spectrum(object):
 
     def overlap(self, other):
         """
-        Overlapping properties: minimum, maximum and the index shift.
-
-        Returns (x_min, x_max, shift) if spectra overlap, otherwise raises
-        ValueError. The spectra are assumed to have similar X step since
-        merging is relevant for similar experiment conditions including
-        spectrometers (or other -meters).
+        Returns overlap properties: minimum, maximum, index shift and overlap
+        length (x_min, x_max, shift, length) if spectra overlap, otherwise
+        raises ValueError.
         """
         if other.__class__ is not Spectrum:
             raise ValueError("Need a Spectrum in merge")
@@ -277,7 +274,9 @@ class Spectrum(object):
         x_max = np.minimum(max1, max2)  # Max is min of maxes
         if x_max < x_min:
             raise ValueError("X ranges do not overlap")
-        shift =  self.x.index(x_min) - other.x.index(x_min)
+        i1 = np.where(self.x >= x_min)[0][0]
+        i2 = np.where(other.x >= x_min)[0][0]
+        shift = i1 - i2
         length = 0
         if shift > 0:
             length = len(self) - shift
@@ -286,9 +285,13 @@ class Spectrum(object):
         return x_min, x_max, shift, length
 
     def merge(self, other):
-        """Merge this spectrum with the other one.
-        The overlap is linearly weighted."""
+        """
+        Merge this spectrum with the other one.
+        The overlap is linearly weighted.
+        """
         xmin, xmax, shift, length = self.overlap(other)
+        if shift == 0:
+            return
         shift1, shift2 = 0, 0
         if shift > 0:
             shift1 = shift
@@ -298,17 +301,20 @@ class Spectrum(object):
         while i < length:
             c2 = (i + 1) / (length + 1)
             c1 = 1 - c2
-            self.y[shift1 + i] = c1 * self.y[shift1 + i] + c2 * other.y[shift2 + i])
+            self.y[shift1 + i] = c1 * self.y[shift1 + i] + c2 * other.y[shift2 + i]
             i += 1
         if shift > 0:
-            self.x.extend(other.x[shift2 + length:])
-            self.y.extend(other.y[shift2 + length:])
+            self.x = np.append(self.x, other.x[shift2 + length:])
+            self.y = np.append(self.y, other.y[shift2 + length:])
+            # TODO headers stuff
         else:
-            other.x.extend(self.x[:length])
-            other.y.extend(self.y[:length])
-            self.x = other.x
-            self.y = other.y
-
+            temp_x = other.x.copy()
+            temp_y = other.y.copy()
+            temp_x = np.append(temp_x, self.x[:length])
+            temp_y = np.append(temp_y, self.y[:length])
+            self.x = temp_x
+            self.y = temp_y
+            # TODO headers stuff
 
     def __str__(self):
         """
