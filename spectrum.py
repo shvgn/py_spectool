@@ -229,35 +229,33 @@ class Spectrum(object):
         if not other.__class__ == Spectrum:
             raise TypeError("Not Spectrum instance or a number")
 
-        x_min = np.maximum(np.min(self.x), np.min(other.x))  # Min is max of mins
-        x_max = np.minimum(np.max(self.x), np.max(other.x))  # Max is min of maxes
-        oth_shift = 0  # Shift of the other spectrum X index if X's coincide.
-        # TODO calculate the oth_shift
-
-        if x_max < x_min:
-            raise ValueError("X ranges do not overlap")
-
-        interpolator_used = False
+        using_interpolation = False
         f = None
-        # f = interpolate.interp1d(other.x, other.y, SPLINE_ORDER)
-        x_new = np.array([], dtype=float)
-        y_new = np.array([], dtype=float)
-        for i in range(len(self.x)):
-            if x_min <= self.x[i] <= x_max:  # If we are in the range
-                x_new = np.append(x_new, self.x[i])
-                if self.x[i] != other.x[i + oth_shift]:
-                    if interpolator_used is False:
-                        f = interpolate.interp1d(other.x, other.y, spline_order)
-                        interpolator_used = True
-                    y_new = np.append(
-                        y_new, getattr(self.y[i], method)(f(self.x[i])))
-                else:
-                    y_new = np.append(y_new, getattr(self.y[i], method)(other.y[i + oth_shift]))
+
+        x_min, x_max, shift, length = self.overlap(other)
+        shift1, shift2 = 0, 0
+        if shift > 0:
+            shift1 = shift
+        else:
+            shift2 = -shift
+        x_new = np.zeros(length)
+        y_new = np.zeros(length)
+
+        for i in range(length):
+            x_new[i] = self.x[i + shift1]
+            if self.x[i + shift1] != other.x[i + shift2]:
+                if using_interpolation is False:
+                    f = interpolate.interp1d(other.x, other.y, spline_order)
+                    using_interpolation = True
+                y_new[i] = getattr(self.y[i + shift1], method)( f(self.x[i + shift]) )
+            else:
+                y_new[i] = getattr(self.y[i + shift1], method)( other.y[i + shift2] )
 
         if 'filepath' in other.headers:
             headers_new[op_header] = other.headers['filepath']
         if verbose:
             print(opfmt % (self.headers['filepath'], other.headers['filepath']))
+
         return Spectrum(x_new, y_new, headers_new)
 
     def overlap(self, other):
@@ -297,12 +295,12 @@ class Spectrum(object):
             shift1 = shift
         else:
             shift2 = -shift
-        i = 0
-        while i < length:
+
+        for i in range(length):
             c2 = (i + 1) / (length + 1)
             c1 = 1 - c2
             self.y[shift1 + i] = c1 * self.y[shift1 + i] + c2 * other.y[shift2 + i]
-            i += 1
+
         if shift > 0:
             self.x = np.append(self.x, other.x[shift2 + length:])
             self.y = np.append(self.y, other.y[shift2 + length:])
@@ -344,30 +342,28 @@ class Spectrum(object):
 
         Naively calculate horizontal shift of y from zero by estimating maximum
         of the points distribution, the Y's being rounded and casted to
-        integers. This method might be useful for estimation of a spectrum
-        noise level in the case when its amplitude is much higher than 1 so the
-        rounding will not affect the accuracy dramatically.  The noise (dark Y)
-        signal is assumed to be constant and to take the majority of the signal
-        length.
+        np.log10( abs(Ymax) / abs(Ymin) ). This method might be useful for
+        estimation of a spectrum noise level. The noise (dark Y) signal is
+        assumed to be constant and to take the majority of the signal length.
         """
         counts = dict()
+        y_min = np.min(np.abs(y))
+        y_max = np.max(np.abs(y))
+        round_order = np.int( np.ceil( np.log10( y_max / y_min )))
         # Populate statistics
         for el in self.y:
-            el = int(round(el))
+            el = int(round(el, round_order))
             if counts.get(el, None) is None:
                 counts[el] = 1
             else:
                 counts[el] += 1
-
-        # cnt_max = 0
-        # for el in sorted(counts.keys()):
-        # counts[el]
+        # TODO better take left shoulder of the distribution peak
         y_shift = max(counts, key=lambda x: counts[x])
         return y_shift
 
     def area(self):
         """
-        Calculate area under the Y curve
+        Area under the Y curve
         """
         s = 0
         for i in range(len(self.x) - 1):
@@ -376,7 +372,7 @@ class Spectrum(object):
 
     def xfilter(self, xl=None, xr=None):
         """
-        Choose X interval from xl to xr
+        Cut X interval from xl to xr
         """
         lpos = 0
         rpos = len(self.x) - 1
@@ -393,28 +389,29 @@ class Spectrum(object):
             return Spectrum(self.x[lpos:rpos], self.y[lpos:rpos], self.headers)
         return self
 
-    def min(self, xleft=None, xright=None):
+    def min(self, xl=None, xr=None):
         """
-        (x, y, idx) = spectrum.min(xleft, xright)
-        Returns minimum y, its x and its index in the range between [xleft, xright], both
-        xleft and xright default to None which means the whole spectrum X range
+        Returns x, y and the index of minimum Y in the range [xl, xr].
+        Both xl and xr default to None which means the whole spectrum X range.
+
+        min(self, xl=None, xr=None)
         """
         need_new = True
         posshift = 0
-        if (xleft is None) and (xright is None):
+        if xl is None and xr is None:
             need_new = False
-        if xleft is None:
-            xleft = self.x[0]
-        if xright is None:
-            xright = self.x[len(self.x) - 1]
+        if xl is None:
+            xl = self.x[0]
+        if xr is None:
+            xr = self.x[len(self.x) - 1]
         spcut = self
         if need_new:
-            spcut = self.xfilter(xleft, xright)
-            if xleft != self.x[0]:
-                posshift = np.argmin(np.abs(self.x - xleft))
-        minpos_local = np.argmin(spcut.y)
-        minpos = minpos_local + posshift
-        return spcut.x[minpos_local], spcut.y[minpos_local], minpos
+            spcut = self.xfilter(xl, xr)
+            if xl != self.x[0]:
+                shift = np.argmin( np.abs(self.x - xl) )
+        min_pos_local = np.argmin( spcut.y )
+        min_pos = min_pos_local + shift
+        return spcut.x[min_pos_local], spcut.y[min_pos_local], min_pos
 
 
 if __name__ == '__main__':
