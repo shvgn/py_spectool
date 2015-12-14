@@ -229,27 +229,29 @@ class Spectrum(object):
         if not other.__class__ == Spectrum:
             raise TypeError("Not Spectrum instance or a number")
 
-        using_interpolation = False
-        f = None
-
         x_min, x_max, shift, length = self.overlap(other)
         shift1, shift2 = 0, 0
         if shift > 0:
             shift1 = shift
         else:
             shift2 = -shift
+
         x_new = np.zeros(length)
         y_new = np.zeros(length)
+        using_interpolation = False
+        f = None
 
         for i in range(length):
+            # print(i)
             x_new[i] = self.x[i + shift1]
-            if self.x[i + shift1] != other.x[i + shift2]:
-                if using_interpolation is False:
-                    f = interpolate.interp1d(other.x, other.y, spline_order)
-                    using_interpolation = True
-                y_new[i] = getattr(self.y[i + shift1], method)( f(self.x[i + shift]) )
-            else:
+            # print("len(x_new) = {0}".format(len(x_new)))
+            if x_new[i] == other.x[i + shift2]:
                 y_new[i] = getattr(self.y[i + shift1], method)( other.y[i + shift2] )
+                continue
+            if using_interpolation is False:
+                f = interpolate.interp1d(other.x, other.y, spline_order)
+                using_interpolation = True
+            y_new[i] = getattr(self.y[i + shift1], method)( f( x_new[i] ))
 
         if 'filepath' in other.headers:
             headers_new[op_header] = other.headers['filepath']
@@ -277,9 +279,9 @@ class Spectrum(object):
         shift = i1 - i2
         length = 0
         if shift > 0:
-            length = len(self) - shift
+            length = np.minimum(len(self) - shift, len(other))
         else:
-            length = len(other) + shift
+            length = np.minimum(len(other) + shift, len(self))
         return x_min, x_max, shift, length
 
     def merge(self, other):
