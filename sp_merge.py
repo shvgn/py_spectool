@@ -8,38 +8,32 @@ import spectrum as sp
 
 
 usagefmt = "usage: {0} file1 file2 [file3 ... ]"
+newfmt = 'merged_{0}'
 
-
-def check_and_exit(data):
-    """Check whether the argument is Spectrum instance and exit otherwise"""
-    if not data.__class__ is sp.Spectrum:
-        print("All arguments must be XY data, but this is not one: {0}".format(data))
-        sys.exit(1)
-
-
-_, merged, datalist = sp.get_data_list(sys.argv, usagefmt=usagefmt, minfiles=2)
-check_and_exit(merged)
+_, merged, data = sp.get_data_list(sys.argv, usagefmt=usagefmt, minfiles=2)
+sp.check_and_exit(merged)
 
 # Controllers
-l = len(datalist) + 1
+l = len(data) + 1
 counter = 0
+enough = l*(l-1)/2
 
-while datalist:
-    spec = datalist.pop(0)
-    check_and_exit(spec)
+while data:
+    spec = data.pop(0)
+    sp.check_and_exit(spec)
     try:
         merged.merge(spec)
     except ValueError:
-        datalist.append(spec)
+        data.append(spec)
         continue
     counter += 1
-    if counter > l*(l-1)/2:
+    if counter > enough:
         print("Some data cannot be merged with others. We've tried enough:")
-        print('\n'.join(['\t' + s.headers['filepath'] for s in datalist]))
+        print('\n'.join(['\t' + s.headers['filepath'] for s in data]))
         sys.exit(1)
 
 fdir, fname = os.path.split(merged.headers['filepath'])
-# FIXME add suffix manipulation
-newpath = os.path.join(fdir, 'merged_' + fname)
+# TODO add suffix manipulation?
+newpath = os.path.join(fdir, newfmt.format(fname))
 with open(newpath, 'w') as newfile:
     newfile.write(str(merged))

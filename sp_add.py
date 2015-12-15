@@ -7,43 +7,24 @@ import os
 import spectrum as sp
 
 
+newfmt = "{0}__add__{1}"
+usagefmt = "usage: {0} file1 file2 [file3 ... ]"
 
-# TODO We have two options here for X which are nanometers or electron-volts. Thus
-# the operation must be independent from X units.
+ref_fname, refdata, data = sp.get_data_list(sys.argv, usagefmt=usagefmt, minfiles=2)
 
-newfmt = "%s__add__%s"
-
-if len(sys.argv) == 1:
-    print("usage: {0} adder_file datafile1 [datafile2 ...]".format(
-        os.path.basename(sys.argv[0])))
-    sys.exit(0)
-
-refdata = sp.get_ref_data(sys.argv[1])
-data = []
-for arg in sys.argv[2:]:
-    if not (os.path.exists(arg) and os.path.isfile(arg)):
-        print("Warning! Cannot open file <" + arg + ">. Skipping.")
-        continue
-    data.append(sp.spectrum_from_file(arg))
-
-if refdata.__class__ is sp.Spectrum:
-    ref_fname = os.path.basename(refdata.headers['filepath'])
-else:
-    ref_fname = str(refdata)
-
-dl = len(data)  # Number of spectra in the data, say 23
-lenstr = str(dl)  # "23"
-ident = 2 * len(lenstr) + 1  # 2*2+1 = 5, to have enough space for "XX/23"
+l = len(data)  # Number of spectra in the data, say 23
+ll = str(l)  # "23"
+ident = 2 * len(ll) + 1  # 2*2+1 = 5, to have enough space for "XX/23"
 cnt = 1
 
 for spdata in data:
-    if dl > 1:
-        print(("%s/%s" % (str(cnt), lenstr)).rjust(ident), "  ", end='')
+    if l > 1:
+        print(("%s/%s" % (str(cnt), ll)).rjust(ident), "  ", end='')
     cnt += 1
     new_spec = spdata + refdata
     fname = os.path.basename(spdata.headers['filepath'])
     fdir = os.path.dirname(spdata.headers['filepath'])
-    new_path = os.path.join(fdir, newfmt % (fname, ref_fname))
+    new_path = os.path.join(fdir, newfmt.format(fname, ref_fname))
     # new_spec.headers['filepath'] = new_path
     with open(new_path, 'w') as new_file:
         new_file.write(str(new_spec))

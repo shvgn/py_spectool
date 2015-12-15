@@ -7,9 +7,6 @@ import sys
 import numpy as np
 from scipy import interpolate
 
-__author__ = 'Evgenii Shevchenko'
-__email__ = 'shevchenko@beam.ioffe.ru'
-__date__ = '2015-12-02'
 
 EVNM_CONST = 1239.84193  # (1 eV) * (1 nm) = EVNM_CONST
 EVNM_BORDER = 100  # eV < 100 <= nm
@@ -24,29 +21,30 @@ def convert_nmev(x_array):
     return np.array([EVNM_CONST / x for x in x_array])
 
 
-def point_deriv(xary, yary, index):
-    """
-    The derivative of a chosen point (x(i), y(i)) at specified index
-    in passed arrays xary and yary
-    """
-    if len(xary) != len(yary):
-        raise ValueError("X and Y must have the same length")
+def check_and_exit(data):
+    """Check whether the argument is Spectrum instance and exit otherwise"""
+    if not data.__class__ is Spectrum:
+        print("Not XY data: {0}".format(data))
+        sys.exit(1)
 
-    length = len(xary)
-    if index <= 0 or index >= length:
-        raise ValueError("Index must be between zero and len-2")
-    # Left derivative
-    dl = (yary[index] - yary[index - 1]) / (xary[index] - xary[index - 1])
-    # Right derivative
-    dr = (yary[index + 1] - yary[index]) / (xary[index + 1] - xary[index])
-    # Mean
-    return 0.5 * (dl + dr)
+
+def get_ref_data(file_or_number):
+    """
+    Get reference data for a calculation via detecting whether the input is
+    a number or a file path. Returns either float or Spectrum instance with
+    the content of the file.
+    """
+    if os.path.exists(file_or_number) and os.path.isfile(file_or_number):
+        refdata = spectrum_from_file(file_or_number)
+    else:
+        refdata = float(file_or_number)
+    return refdata
 
 
 def get_data_list(filelist, usagefmt='usage: {0} reffile datafile1 [datafile2 ...]',
                   minfiles=1, maxfiles=1024):
     """Returns a list of spectrum instances"""
-    if len(filelist) < minfiles or len(filelist) > maxfiles:
+    if not minfiles < len(filelist) < maxfiles:
         print(usagefmt.format(os.path.basename(filelist[0])))
         sys.exit(1)  # Maybe throwing an exception would be better here
 
@@ -54,7 +52,7 @@ def get_data_list(filelist, usagefmt='usage: {0} reffile datafile1 [datafile2 ..
     datalist = []
     for fname in filelist[2:]:
         if not (os.path.exists(fname) and os.path.isfile(fname)):
-            print("Warning! Cannot open file <" + fname + ">. Skipping.")
+            print("Cannot open file <" + fname + ">. Skipping.")
             continue
         datalist.append(spectrum_from_file(fname))
 
@@ -65,32 +63,31 @@ def get_data_list(filelist, usagefmt='usage: {0} reffile datafile1 [datafile2 ..
     return ref_fname, refdata, datalist
 
 
-def ary_deriv(xary, yary):
+def point_deriv(x, y, i):
+    """
+    The derivative in chosen point (x(i), y(i)) at specified i
+    in passed arrays x and y
+    """
+    if len(x) != len(y):
+        raise ValueError("X and Y must have the same length")
+    if i <= 0 or i >= len(x):
+        raise ValueError("Index must be between zero and len-2")
+    # Left derivative
+    dl = (y[i] - y[i - 1]) / (x[i] - x[i - 1])
+    # Right derivative
+    dr = (y[i + 1] - y[i]) / (x[i + 1] - x[i])
+    # Mean
+    return 0.5 * (dl + dr)
+
+
+def ary_deriv(x, y):
     """
     Numeric derivative of y array over x array
     Return dy and dx with length-2 related to the input arrays
     """
-    dx = np.array(xary[1:len(xary) - 1])
-    dy = np.array([point_deriv(xary, yary, i)
-                   for i in range(1, len(xary) - 1)])
+    dx = np.array( x[ 1 : len(x)-1 ])
+    dy = np.array([ point_deriv(x, y, i) for i in range( 1, len(x)-1 )])
     return dx, dy
-
-
-def get_ref_data(file_or_number):
-    """
-    Get reference data for a calculation via detecting whether the input is
-    a number or a file path. Returns either float or Spectrum instance with
-    the content of the file.
-    """
-    # if not (os.path.exists(file_or_number) and os.path.isfile(file_or_number)):
-    # sys.exit("First argument: file not found or it's not a file")
-    # refdata = spectrum_from_file(file_or_number)
-
-    if os.path.exists(file_or_number) and os.path.isfile(file_or_number):
-        refdata = spectrum_from_file(file_or_number)
-    else:
-        refdata = float(file_or_number)
-    return refdata
 
 
 def spectrum_from_file(filepath):
@@ -114,7 +111,7 @@ def spectrum_from_file(filepath):
             x = np.append(x, [float(xy[0])])  # FIXME Expecxted Union[ndarray, iterable], got float
             y = np.append(y, [float(xy[1])])  # FIXME Expecxted Union[ndarray, iterable], got float
         except ValueError:
-            # If floats cannot be parsed the data is written to headers
+             # If floats cannot be parsed the data is written to headers
             seps = [':', '=', None]
             for sep in seps:
                 info = line.split(sep, 1)
