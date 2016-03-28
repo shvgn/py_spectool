@@ -22,7 +22,9 @@ def convert_nmev(x_array):
 
 
 def check_and_exit(data):
-    """Check whether the argument is Spectrum instance and exit otherwise"""
+    """
+    Check whether the argument is Spectrum instance and exit otherwise
+    """
     if not data.__class__ is Spectrum:
         print("Not XY data: {0}".format(data))
         sys.exit(1)
@@ -131,18 +133,20 @@ class Spectrum(object):
     __op_headers = {'__add__':     'added_to',
                     '__sub__':     'subtracted',
                     '__mul__':     'multiplied_by',
+                    '__div__': 'divided_by',
                     '__truediv__': 'divided_by',
                     '__pow__':     'exponentiated_by'}
 
-    def __init__(self, x, y, headers=None):
+    def __init__(self, x, y, headers=dict()):
         if len(x) != len(y):
             raise ValueError("X and Y must be of the same length")
-        if len(x) == 0:
-            raise ValueError("Spectrum data must be non-zero")
+        # if len(x) == 0:
+        #     raise ValueError("Spectrum data must be non-zero")
         # Ensure X is sorted in ascending order
-        self.x, self.y = zip(*sorted(list(zip(x, y))))
-        self.x = np.array(self.x, dtype=float)
-        self.y = np.array(self.y, dtype=float)
+        if len(x) > 0:
+            x, y = zip(*sorted(list(zip(x, y))))
+        self.x = np.array(x, dtype=float)
+        self.y = np.array(y, dtype=float)
         if headers.__class__ is not dict and headers is not None:
             raise ValueError("headers must be a dict")
         self.headers = headers
@@ -155,6 +159,9 @@ class Spectrum(object):
 
     def __mul__(self, other):
         return self.__arithmetic(other, '__mul__')
+
+    def __div__(self, other):
+        return self.__arithmetic(other, '__div__')
 
     def __truediv__(self, other):
         return self.__arithmetic(other, '__truediv__')
@@ -196,7 +203,11 @@ class Spectrum(object):
             # Multiplying file by argument
             opstring = "Multiplying"
             pron = "by"
-        elif method == '__truediv__':
+        elif method in ['__div__', '__truediv__']:
+            # Dividing file by argument
+            opstring = "Dividing"
+            pron = "by"
+        elif method == '__div__':
             # Dividing file by argument
             opstring = "Dividing"
             pron = "by"
@@ -317,12 +328,16 @@ class Spectrum(object):
         """
         String representation
         """
-        max_header_len = np.max([len(s) for s in self.headers.keys()])
-        header_txt = '\n'.join(k.rjust(max_header_len) + ":\t" + v
-                               for (k, v) in self.headers.items())
+        output = ""
+        if self.headers:
+            max_header_len = np.max([len(s) for s in self.headers.keys()])
+            output = '\n'.join(k.rjust(max_header_len) + ":\t" + str(v)
+                                   for (k, v) in self.headers.items())
+            output += "\n\n"
         data_txt = '\n'.join("%f\t%f" % (k, v) for (k, v)
                              in zip(self.x, self.y))
-        return header_txt + "\n\n" + data_txt
+        output += data_txt
+        return output
 
     def __len__(self):
         """
@@ -404,6 +419,7 @@ class Spectrum(object):
         if xr is None:
             xr = self.x[len(self.x) - 1]
         spcut = self
+        shift = 0
         if need_new:
             spcut = self.xfilter(xl, xr)
             if xl != self.x[0]:
@@ -411,6 +427,38 @@ class Spectrum(object):
         min_pos_local = np.argmin( spcut.y )
         min_pos = min_pos_local + shift
         return spcut.x[min_pos_local], spcut.y[min_pos_local], min_pos
+
+    def max(self, xl=None, xr=None):
+        """
+        Returns x, y and the index of maximum Y in the range [xl, xr].
+        Both xl and xr default to None which means the whole spectrum X range.
+
+        max(self, xl=None, xr=None)
+        """
+        spcut = self.xfilter(xl, xr)
+        max_pos = np.argmax(spcut.y)
+        return spcut.x[max_pos], spcut.y[max_pos], max_pos
+
+    def deduplicate(self, comparator=max):
+        """
+        Chooses one value between Y1 and Y2 at similar X.
+
+        deduplicate(self, comparator=max):
+        """
+        collector = {}
+        for i in range(len(self.x)):
+            x, y = self.x[i], self.y[i]
+            if collector.get(x):
+                collector[x] = comparator(collector[x], y)
+            else:
+                collector[x] = y
+        new_x, new_y = [], []
+        for x, y in collector.items():
+            new_x.append(x)
+            new_y.append(y)
+        self.x = np.array(new_x, dtype=float)
+        self.y = np.array(new_y, dtype=float)
+
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ import spectrum as sp
 
 usagefmt = "usage: {0} file1 [file2 ... ]"
 
-_, refdata, data = sp.get_data_list(sys.argv, usagefmt=usagefmt, minfiles=2)
+_, refdata, data = sp.get_data_list(sys.argv, usagefmt=usagefmt, minfiles=1)
 data = [refdata] + data
 
 for spdata in data:
